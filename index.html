@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f4f8f9">
+    <title>无线文字输入板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Clipboard Display';
+            src: url('./fonts/zcool-display.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: 'Smiley Display';
+            src: url('./fonts/smiley-display.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: 'Ink Display';
+            src: url('./fonts/ma-shan-display.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: 'Play Display';
+            src: url('./fonts/kuaile-display.woff2') format('woff2');
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
+        :root {
+            --ink: #26333a;
+            --muted: #65757d;
+            --line: rgba(104, 145, 156, .2);
+            --cyan: #38c7d2;
+            --cyan-deep: #218fa1;
+            --mint: #36c97b;
+            --paper: #f7faf9;
+            --danger: #d95f6a;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { min-height: 100%; background: #f5f9f8; }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--ink);
+            font-family: 'DM Sans', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background:
+                radial-gradient(circle at 108% 6%, rgba(192, 234, 241, .9) 0 14%, transparent 34%),
+                radial-gradient(circle at -12% 96%, rgba(205, 241, 237, .78) 0 18%, transparent 42%),
+                linear-gradient(135deg, #fbfcfb 0%, #f2f7f7 55%, #edf6f7 100%);
+        }
+
+        body::before {
+            position: fixed;
+            z-index: -1;
+            inset: 0;
+            content: '';
+            opacity: .32;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+        }
+
+        .page {
+            width: min(100%, 620px);
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: max(24px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom));
+            position: relative;
+        }
+
+        .orb {
+            position: absolute;
+            z-index: -1;
+            width: 410px;
+            height: 410px;
+            top: -170px;
+            right: -230px;
+            border: 2px solid rgba(255, 255, 255, .9);
+            border-radius: 50%;
+            background: radial-gradient(circle at 25% 75%, rgba(255,255,255,.9), rgba(205,239,244,.68) 45%, rgba(166,221,232,.24) 69%, transparent 70%);
+            box-shadow: -16px 22px 40px rgba(74, 161, 179, .13), inset 10px -12px 28px rgba(255,255,255,.72);
+        }
+
+        .orb::after {
+            position: absolute;
+            content: '';
+            width: 12px;
+            height: 12px;
+            bottom: 37px;
+            left: 48px;
+            border-radius: 50%;
+            background: #72e4ed;
+            box-shadow: 0 0 0 8px rgba(114,228,237,.14), 0 0 22px #72e4ed;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #1d3038;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .brand-icon { width: 43px; height: 34px; color: var(--cyan-deep); }
+
+        .status-badge {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border: 1px solid rgba(255,255,255,.88);
+            border-radius: 999px;
+            color: #647278;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(255,255,255,.55);
+            box-shadow: 0 9px 20px rgba(65, 121, 134, .1), inset 0 1px rgba(255,255,255,.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #aab7bb;
+        }
+
+        .status-badge.connected { color: #277a59; }
+        .status-badge.connected .status-dot { background: var(--mint); box-shadow: 0 0 11px rgba(54,201,123,.8); }
+        .status-badge.error { color: var(--danger); }
+        .status-badge.error .status-dot { background: var(--danger); }
+
+        .hero { padding: clamp(70px, 14vw, 108px) 0 26px; }
+
+        .eyebrow {
+            margin: 0 0 17px;
+            color: #758187;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .24em;
+        }
+
+        h1 {
+            max-width: 430px;
+            margin: 0;
+            color: #27343a;
+            font-size: clamp(39px, 10.5vw, 61px);
+            font-weight: 800;
+            letter-spacing: -.07em;
+            line-height: 1.16;
+        }
+
+        .hero-copy {
+            margin: 20px 0 0;
+            color: #607077;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.75;
+        }
+
+        .trust-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            color: #65757b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .trust-icon {
+            width: 38px;
+            height: 38px;
+            padding: 9px;
+            border: 1px solid rgba(255,255,255,.88);
+            border-radius: 50%;
+            color: var(--cyan-deep);
+            background: rgba(235, 250, 251, .72);
+            box-shadow: 0 6px 16px rgba(48, 153, 171, .12), inset 0 1px #fff;
+        }
+
+        .trust-separator { color: #b2bec0; }
+
+        .composer {
+            margin-top: 17px;
+            padding: 5px;
+            border: 1px solid rgba(149, 213, 224, .8);
+            border-radius: 34px;
+            background: rgba(255, 255, 255, .54);
+            box-shadow: 0 14px 35px rgba(63, 127, 143, .12), inset 0 1px 3px rgba(255,255,255,.95), 0 0 0 4px rgba(215,245,247,.4);
+            transition: box-shadow .22s ease, border-color .22s ease;
+        }
+
+        .composer:focus-within {
+            border-color: #65dce5;
+            box-shadow: 0 17px 42px rgba(44, 176, 194, .18), 0 0 0 5px rgba(101,220,229,.18);
+        }
+
+        textarea {
+            display: block;
+            width: 100%;
+            height: clamp(215px, 42vw, 275px);
+            padding: 26px 25px 48px;
+            resize: none;
+            outline: 0;
+            border: 0;
+            border-radius: 28px;
+            color: var(--ink);
+            font: 500 17px/1.7 inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(240,247,247,.62));
+        }
+
+        textarea::placeholder { color: #849398; opacity: 1; }
+        textarea:disabled { color: #9aa7aa; cursor: wait; }
+
+        .char-counter {
+            position: absolute;
+            right: 25px;
+            bottom: 20px;
+            color: #738188;
+            font-size: 14px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .input-group { position: relative; }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 82px minmax(0, 1fr);
+            align-items: center;
+            gap: 21px;
+            margin-top: 30px;
+        }
+
+        button { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+
+        .btn-clear {
+            display: grid;
+            place-items: center;
+            gap: 7px;
+            width: 82px;
+            padding: 0;
+            border: 0;
+            color: #607077;
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .clear-disc {
+            display: grid;
+            place-items: center;
+            width: 62px;
+            height: 62px;
+            border: 1px solid rgba(255,255,255,.9);
+            border-radius: 50%;
+            background: rgba(255,255,255,.52);
+            box-shadow: 0 8px 19px rgba(48, 111, 127, .12), inset 0 1px #fff;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .btn-clear:hover .clear-disc, .btn-clear:focus-visible .clear-disc { transform: translateY(-2px); box-shadow: 0 12px 23px rgba(48,111,127,.16), inset 0 1px #fff; }
+        .btn-clear:disabled { color: #abb8bb; cursor: not-allowed; }
+        .btn-clear:disabled .clear-disc { opacity: .55; }
+
+        .btn-send {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 68px;
+            padding: 7px 8px 7px 26px;
+            border: 1px solid rgba(139, 224, 231, .9);
+            border-radius: 999px;
+            color: #31444b;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            background: linear-gradient(102deg, rgba(255,255,255,.72), rgba(220,246,248,.8));
+            box-shadow: 0 11px 25px rgba(44, 159, 177, .17), inset 0 1px rgba(255,255,255,.96);
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .send-label { flex: 1; text-align: center; }
+
+        .send-disc {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 54px;
+            height: 54px;
+            margin-left: 14px;
+            border-radius: 50%;
+            color: #277b86;
+            background: radial-gradient(circle at 34% 25%, #fff, #d7f8fa 48%, #a4e6ec 100%);
+            box-shadow: 0 4px 12px rgba(48,166,180,.23), inset 0 1px #fff;
+        }
+
+        .btn-send:hover:not(:disabled), .btn-send:focus-visible:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 31px rgba(44,159,177,.24), inset 0 1px #fff; }
+        .btn-send:active:not(:disabled) { transform: translateY(0); }
+        .btn-send:disabled { opacity: .54; cursor: not-allowed; }
+
+        .send-note { margin: 10px 0 0 103px; color: #7a898e; font-size: 12px; text-align: center; }
+
+        .privacy-card {
+            margin-top: clamp(45px, 9vw, 70px);
+            padding: 27px 22px 25px;
+            border: 1px solid rgba(255,255,255,.82);
+            border-radius: 32px 32px 0 0;
+            background: linear-gradient(145deg, rgba(242, 252, 251, .8), rgba(255,255,255,.44));
+            box-shadow: 0 -10px 28px rgba(73, 155, 160, .06), inset 0 1px rgba(255,255,255,.9);
+        }
+
+        .privacy-heading { display: flex; align-items: center; gap: 14px; }
+        .privacy-heading > div { min-width: 0; }
+        .privacy-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 58px;
+            height: 58px;
+            border: 1px solid rgba(255,255,255,.92);
+            border-radius: 50%;
+            color: var(--cyan-deep);
+            background: rgba(255,255,255,.6);
+            box-shadow: 0 7px 18px rgba(44,147,158,.11), inset 0 1px #fff;
+        }
+        .privacy-heading strong { display: block; font-size: 17px; letter-spacing: -.02em; }
+        .privacy-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+        .connection-line { display: flex; align-items: center; gap: 10px; margin: 25px 0 0; color: #647378; font-size: 13px; }
+        .connection-line svg { flex: 0 0 auto; color: var(--cyan-deep); }
+        .connection-line::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--cyan), rgba(86,177,188,.22)); }
+
+        .toast {
+            position: fixed;
+            z-index: 10;
+            left: 50%;
+            bottom: max(24px, env(safe-area-inset-bottom));
+            max-width: calc(100vw - 44px);
+            padding: 12px 18px;
+            border: 1px solid rgba(255,255,255,.76);
+            border-radius: 999px;
+            color: #267761;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            background: rgba(31, 50, 56, .9);
+            box-shadow: 0 10px 26px rgba(17,36,43,.23);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 120px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        .send-feedback {
+            position: fixed;
+            z-index: 20;
+            top: 50%;
+            left: 50%;
+            display: grid;
+            width: 1px;
+            height: 1px;
+            place-items: center;
+            pointer-events: none;
+        }
+
+        .feedback-wave, .feedback-wave::after, .feedback-wave::before {
+            position: absolute;
+            width: 78px;
+            height: 78px;
+            content: '';
+            border: 1px solid rgba(75, 219, 207, .72);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .feedback-wave::before { inset: -1px; }
+        .feedback-wave::after { inset: -1px; }
+
+        .feedback-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: max-content;
+            min-width: 156px;
+            padding: 9px 15px 9px 10px;
+            border: 1px solid rgba(255, 255, 255, .92);
+            border-radius: 999px;
+            color: #286c72;
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(13px) scale(.87);
+            background: linear-gradient(125deg, rgba(255,255,255,.94), rgba(209,249,247,.74));
+            box-shadow: 0 16px 38px rgba(26, 143, 157, .25), inset 0 2px 2px #fff, inset 0 -8px 15px rgba(76, 211, 215, .15);
+            backdrop-filter: blur(16px) saturate(140%);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+        }
+
+        .feedback-icon {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.9);
+            border-radius: 50%;
+            color: #177e85;
+            background: radial-gradient(circle at 33% 27%, #fff 0 8%, #c9f7f3 49%, #70d9d5 100%);
+            box-shadow: 0 4px 10px rgba(29,159,163,.25), inset 0 1px #fff;
+        }
+
+        .send-feedback.show .feedback-card { animation: feedback-card 1.9s cubic-bezier(.16,.8,.28,1) forwards; }
+        .send-feedback.success .feedback-wave { animation: feedback-wave 1.7s ease-out forwards; }
+        .send-feedback.success .feedback-wave::before { animation: feedback-wave 1.7s .18s ease-out forwards; }
+        .send-feedback.success .feedback-wave::after { animation: feedback-wave 1.7s .36s ease-out forwards; }
+
+        .send-feedback.failure .feedback-wave, .send-feedback.failure .feedback-wave::before, .send-feedback.failure .feedback-wave::after { border-color: rgba(236, 124, 135, .7); }
+        .send-feedback.failure .feedback-card { color: #a24b58; background: linear-gradient(125deg, rgba(255,255,255,.95), rgba(255,222,224,.8)); box-shadow: 0 16px 38px rgba(177,75,91,.21), inset 0 2px 2px #fff, inset 0 -8px 15px rgba(245,139,148,.13); animation-name: feedback-card, feedback-shake; animation-duration: 1.9s, .46s; animation-delay: 0s, .18s; }
+        .send-feedback.failure .feedback-icon { color: #b34d5b; background: radial-gradient(circle at 33% 27%, #fff 0 8%, #ffe4e6 49%, #f1a0aa 100%); box-shadow: 0 4px 10px rgba(180,74,91,.22), inset 0 1px #fff; }
+        .send-feedback.failure .feedback-wave { animation: feedback-wave 1.45s ease-out forwards; }
+        .send-feedback.failure .feedback-wave::before { animation: feedback-wave 1.45s .17s ease-out forwards; }
+
+        /* 多阶段发送反馈：沿用玻璃卡片与扩散波纹，等待状态保持可见。 */
+        .send-feedback.pending .feedback-card,
+        .send-feedback.relay .feedback-card,
+        .send-feedback.waiting .feedback-card {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            animation: feedback-card-hold .24s cubic-bezier(.16,.8,.28,1) forwards;
+        }
+        .send-feedback.pending .feedback-wave,
+        .send-feedback.relay .feedback-wave,
+        .send-feedback.waiting .feedback-wave {
+            animation: feedback-wave-soft 1.8s ease-out infinite;
+        }
+        .send-feedback.pending .feedback-card { color: #55727a; }
+        .send-feedback.relay .feedback-card { color: #287b79; }
+        .send-feedback.waiting .feedback-card { color: #6d6588; }
+        .send-feedback.pending .feedback-icon { color: #487c87; background: radial-gradient(circle at 33% 27%, #fff 0 8%, #e3f6f5 49%, #abd9dc 100%); }
+        .send-feedback.relay .feedback-icon { color: #197d7d; background: radial-gradient(circle at 33% 27%, #fff 0 8%, #d4f8f1 49%, #7bd6ca 100%); }
+        .send-feedback.waiting .feedback-icon { color: #75628f; background: radial-gradient(circle at 33% 27%, #fff 0 8%, #ede6fa 49%, #c6b4df 100%); }
+
+        .send-feedback.timeout .feedback-card {
+            color: #89651e;
+            background: linear-gradient(125deg, rgba(255,255,255,.95), rgba(255,239,199,.82));
+            box-shadow: 0 16px 38px rgba(177,126,43,.2), inset 0 2px 2px #fff, inset 0 -8px 15px rgba(245,194,94,.14);
+            animation-name: feedback-card, feedback-shake;
+            animation-duration: 1.9s, .46s;
+            animation-delay: 0s, .18s;
+        }
+        .send-feedback.timeout .feedback-icon { color: #946c1d; background: radial-gradient(circle at 33% 27%, #fff 0 8%, #fff0c9 49%, #e8c477 100%); }
+        .send-feedback.timeout .feedback-wave, .send-feedback.timeout .feedback-wave::before, .send-feedback.timeout .feedback-wave::after { border-color: rgba(222,174,74,.72); }
+
+        @keyframes feedback-card-hold {
+            0% { opacity: 0; transform: translateY(13px) scale(.87); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes feedback-wave-soft {
+            0% { opacity: .58; transform: scale(.35); }
+            78%, 100% { opacity: 0; transform: scale(2.8); }
+        }
+
+        @keyframes feedback-wave {
+            0% { opacity: .85; transform: scale(.25); }
+            76%, 100% { opacity: 0; transform: scale(3.8); }
+        }
+
+        @keyframes feedback-card {
+            0% { opacity: 0; transform: translateY(13px) scale(.87); }
+            18%, 74% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(.97); }
+        }
+
+        @keyframes feedback-shake {
+            0%, 100% { margin-left: 0; }
+            30% { margin-left: -7px; }
+            58% { margin-left: 6px; }
+            78% { margin-left: -3px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .send-feedback.show .feedback-card, .send-feedback.success .feedback-wave, .send-feedback.success .feedback-wave::before, .send-feedback.success .feedback-wave::after, .send-feedback.failure .feedback-wave, .send-feedback.failure .feedback-wave::before, .send-feedback.pending .feedback-wave, .send-feedback.relay .feedback-wave, .send-feedback.waiting .feedback-wave { animation-duration: .01ms; }
+        }
+
+        @media (max-width: 390px) {
+            .page { padding-right: 18px; padding-left: 18px; }
+            .brand { font-size: 15px; }
+            .status-badge { padding: 8px 10px; font-size: 12px; }
+            .hero { padding-top: 62px; }
+            .action-row { grid-template-columns: 69px minmax(0, 1fr); gap: 12px; }
+            .btn-clear { width: 69px; }
+            .send-note { margin-left: 81px; }
+            .btn-send { padding-left: 15px; font-size: 18px; }
+            .send-disc { width: 49px; height: 49px; margin-left: 8px; }
+        }
+
+        /* Mobile single-screen composition: keep every control inside the visible viewport. */
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            height: 100svh;
+            min-height: 0;
+        }
+
+        .page {
+            width: 100%;
+            height: 100svh;
+            min-height: 0;
+            max-width: 620px;
+            display: grid;
+            grid-template-rows: auto auto minmax(124px, 1fr) auto auto auto;
+            gap: 0;
+            padding: max(16px, env(safe-area-inset-top)) 22px max(14px, env(safe-area-inset-bottom));
+            overflow: hidden;
+        }
+
+        .topbar { min-height: 43px; }
+
+        .hero {
+            padding: clamp(22px, 4.4vh, 38px) 0 clamp(12px, 1.8vh, 18px);
+        }
+
+        .eyebrow { margin-bottom: 9px; font-size: 10px; letter-spacing: .22em; }
+
+        h1, .brand-name, .send-label {
+            font-family: 'Clipboard Display', 'Noto Sans SC', sans-serif;
+            font-weight: 400;
+        }
+
+        h1 {
+            max-width: none;
+            color: transparent;
+            font-size: clamp(37px, 9.6vw, 52px);
+            line-height: 1.08;
+            letter-spacing: .012em;
+            background: linear-gradient(145deg, #1b3038 18%, #355661 74%, #1d333a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-stroke: .2px rgba(24, 53, 62, .18);
+            filter: drop-shadow(0 4px 5px rgba(54, 116, 127, .1));
+        }
+
+        .brand-name { font-size: 20px; letter-spacing: .06em; }
+        .hero-copy { margin-top: 9px; font-size: 13px; line-height: 1.5; }
+
+        .trust-line { gap: 8px; margin-top: 11px; font-size: 12px; }
+        .trust-icon { width: 31px; height: 31px; padding: 7px; }
+
+        .input-group {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .composer {
+            flex: 1;
+            min-height: 0;
+            margin: 0;
+            overflow: hidden;
+            border: 1px solid rgba(125, 224, 233, .86);
+            border-radius: 27px;
+            background:
+                linear-gradient(140deg, rgba(255,255,255,.84) 0%, rgba(229,250,251,.58) 47%, rgba(187,237,241,.38) 100%);
+            box-shadow:
+                0 15px 31px rgba(27, 163, 179, .2),
+                0 0 0 5px rgba(189, 243, 246, .24),
+                inset 0 1px 2px rgba(255,255,255,.98),
+                inset 0 -16px 26px rgba(112, 210, 221, .1);
+        }
+
+        .composer::before {
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            left: 8%;
+            width: 72%;
+            height: 38%;
+            content: '';
+            border-radius: 50%;
+            opacity: .78;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,.85), rgba(255,255,255,0) 70%);
+            filter: blur(6px);
+        }
+
+        textarea {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            min-height: 0;
+            padding: 20px 20px 39px;
+            border-radius: 23px;
+            color: #31474f;
+            font-size: 15px;
+            line-height: 1.55;
+            background: linear-gradient(130deg, rgba(255,255,255,.72), rgba(249,255,255,.22));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.92), inset 0 -18px 28px rgba(117,209,220,.05);
+            backdrop-filter: blur(14px) saturate(120%);
+            -webkit-backdrop-filter: blur(14px) saturate(120%);
+        }
+
+        .char-counter { right: 20px; bottom: 15px; z-index: 3; font-size: 12px; }
+
+        .action-row {
+            grid-template-columns: 62px minmax(0, 1fr);
+            gap: 14px;
+            height: 58px;
+            margin-top: 13px;
+        }
+
+        .btn-clear { width: 62px; gap: 2px; font-size: 11px; }
+        .clear-disc { width: 48px; height: 48px; color: #49818d; background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(211,244,246,.52)); box-shadow: 0 8px 18px rgba(42,152,168,.18), inset 0 2px 2px #fff, inset 0 -7px 12px rgba(85,194,206,.14); }
+
+        .btn-send {
+            min-height: 54px;
+            padding: 5px 6px 5px 20px;
+            border-color: rgba(126, 230, 237, .95);
+            color: #27626d;
+            font-size: 22px;
+            letter-spacing: .08em;
+            background: linear-gradient(112deg, rgba(255,255,255,.88), rgba(205,246,248,.73) 60%, rgba(142,226,234,.55));
+            box-shadow: 0 11px 24px rgba(30,155,173,.22), 0 0 0 3px rgba(202,249,251,.23), inset 0 2px 2px rgba(255,255,255,.98), inset 0 -10px 17px rgba(86,204,216,.12);
+            backdrop-filter: blur(16px) saturate(125%);
+            -webkit-backdrop-filter: blur(16px) saturate(125%);
+        }
+
+        .send-disc {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            margin-left: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.93);
+            color: #177989;
+            background: radial-gradient(circle at 30% 22%, #fff 0 7%, rgba(236,254,255,.94) 23%, rgba(151,231,238,.62) 70%, rgba(84,196,210,.72) 100%);
+            box-shadow: 0 5px 13px rgba(28,157,176,.28), inset 0 2px 2px #fff, inset 0 -7px 10px rgba(38,166,181,.22);
+        }
+        .send-disc::after { position: absolute; top: 4px; left: 8px; width: 23px; height: 10px; content: ''; border-radius: 50%; background: rgba(255,255,255,.63); filter: blur(2px); }
+        .send-disc svg { position: relative; z-index: 1; }
+
+        .send-note { margin: 3px 0 0 76px; font-size: 10px; }
+
+        .privacy-card {
+            min-height: 0;
+            margin-top: 9px;
+            padding: 10px 13px;
+            border-radius: 22px;
+            background: linear-gradient(145deg, rgba(245,255,254,.74), rgba(200,241,239,.42));
+            box-shadow: 0 8px 19px rgba(73,155,160,.08), inset 0 1px rgba(255,255,255,.96), inset 0 -8px 16px rgba(106,210,211,.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .privacy-heading { gap: 9px; }
+        .privacy-icon { width: 37px; height: 37px; }
+        .privacy-heading strong { font-size: 13px; }
+        .privacy-heading p { margin-top: 1px; font-size: 10px; line-height: 1.35; }
+        .connection-line { display: none; }
+
+        @media (max-height: 680px) {
+            .page { padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: max(9px, env(safe-area-inset-bottom)); }
+            .hero { padding-top: 13px; padding-bottom: 8px; }
+            .hero-copy { display: none; }
+            .trust-line { margin-top: 8px; }
+            h1 { font-size: clamp(33px, 8.5vw, 43px); }
+            .action-row { height: 51px; margin-top: 9px; }
+            .btn-send { min-height: 49px; }
+            .privacy-card { margin-top: 6px; padding-top: 7px; padding-bottom: 7px; }
+            .privacy-heading p { display: none; }
+        }
+
+        /* Reference-matched input and controls: asymmetric crystal surface + layered send control. */
+        .composer {
+            border: 1.5px solid rgba(137, 222, 231, .92);
+            border-radius: 46px 92px 49px 67px / 48px 56px 64px 59px;
+            background:
+                radial-gradient(ellipse 52% 43% at 88% 88%, rgba(255,255,255,.82) 0 22%, rgba(255,255,255,0) 72%),
+                linear-gradient(135deg, rgba(255,255,255,.96) 0%, rgba(235,249,250,.74) 55%, rgba(181,231,236,.48) 100%);
+            box-shadow:
+                0 17px 34px rgba(31, 151, 170, .22),
+                0 0 0 5px rgba(196, 246, 248, .32),
+                inset 2px 2px 4px rgba(255,255,255,.99),
+                inset -10px -14px 22px rgba(81, 195, 209, .12);
+        }
+
+        .composer::before {
+            top: auto;
+            bottom: -30%;
+            left: 25%;
+            width: 95%;
+            height: 79%;
+            border-radius: 52% 48% 50% 50%;
+            opacity: .92;
+            background: radial-gradient(ellipse at 41% 43%, rgba(255,255,255,.94) 0 15%, rgba(255,255,255,.34) 46%, rgba(255,255,255,0) 71%);
+            filter: blur(3px);
+        }
+
+        .composer::after {
+            position: absolute;
+            z-index: 3;
+            top: 8px;
+            right: 15%;
+            width: 38%;
+            height: 2px;
+            content: '';
+            border-radius: 50%;
+            opacity: .76;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.98), transparent);
+            box-shadow: 0 0 9px rgba(255,255,255,.92);
+        }
+
+        textarea {
+            padding: 22px 24px 43px;
+            border-radius: 39px 82px 40px 58px / 39px 51px 55px 50px;
+            background:
+                linear-gradient(156deg, rgba(255,255,255,.43) 0 53%, rgba(227,245,247,.1) 54% 100%),
+                linear-gradient(130deg, rgba(255,255,255,.61), rgba(239,250,251,.18));
+            box-shadow: inset 1px 2px 1px rgba(255,255,255,.96), inset -8px -13px 20px rgba(103,205,217,.06);
+        }
+
+        .char-counter { right: 27px; bottom: 18px; }
+
+        .action-row {
+            grid-template-columns: 70px minmax(0, 1fr);
+            gap: 16px;
+            height: 66px;
+            margin-top: 14px;
+        }
+
+        .btn-clear { width: 70px; gap: 4px; font-size: 12px; color: #51676d; }
+        .clear-disc {
+            width: 56px;
+            height: 56px;
+            border: 1.5px solid rgba(255,255,255,.95);
+            color: #394d53;
+            background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.99), rgba(237,248,249,.82) 52%, rgba(184,230,234,.48) 100%);
+            box-shadow: 0 10px 22px rgba(42,152,168,.19), inset 0 2px 3px #fff, inset 0 -9px 15px rgba(85,194,206,.13);
+        }
+
+        .btn-send {
+            min-height: 62px;
+            padding: 6px 2px 6px 24px;
+            border: 1.5px solid rgba(135, 222, 231, .9);
+            border-radius: 999px;
+            color: #334a50;
+            font-family: 'Noto Sans SC', 'DM Sans', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: .035em;
+            background:
+                linear-gradient(90deg, rgba(255,255,255,.68) 0%, rgba(255,255,255,.9) 29%, rgba(204,245,247,.73) 72%, rgba(144,224,232,.62) 100%);
+            box-shadow:
+                0 12px 26px rgba(30,155,173,.23),
+                0 0 0 4px rgba(203,249,251,.26),
+                inset 0 2px 2px rgba(255,255,255,.99),
+                inset 0 -11px 18px rgba(86,204,216,.13);
+        }
+
+        .send-label { font-family: inherit; letter-spacing: inherit; }
+
+        .send-disc {
+            width: 64px;
+            height: 64px;
+            margin: -2px -7px -2px 9px;
+            border: 2px solid rgba(255,255,255,.93);
+            color: #207e8d;
+            background:
+                radial-gradient(circle at 31% 23%, #fff 0 8%, rgba(238,254,255,.95) 23%, rgba(173,238,243,.68) 62%, rgba(87,197,210,.77) 100%);
+            box-shadow: 0 7px 16px rgba(28,157,176,.3), inset 0 3px 3px #fff, inset 0 -10px 13px rgba(38,166,181,.24);
+        }
+        .send-disc::after { top: 6px; left: 11px; width: 32px; height: 12px; opacity: .84; }
+        .send-disc svg { width: 30px; height: 30px; }
+
+        .send-note { margin: 4px 0 0 86px; font-size: 10px; }
+
+        @media (max-width: 370px) {
+            .page { padding-right: 17px; padding-left: 17px; }
+            .action-row { grid-template-columns: 63px minmax(0, 1fr); gap: 9px; }
+            .btn-clear { width: 63px; }
+            .btn-send { padding-left: 13px; font-size: 17px; }
+            .send-disc { width: 58px; height: 58px; margin-right: -6px; }
+            .send-note { margin-left: 72px; }
+        }
+
+        /* Reserve a protected footer inside the textarea so long text never meets the counter. */
+        textarea {
+            padding-bottom: 82px;
+            scroll-padding-bottom: 82px;
+        }
+
+        .char-counter {
+            right: 24px;
+            bottom: 18px;
+            z-index: 5;
+            min-width: 92px;
+            padding: 6px 10px;
+            border: 1px solid rgba(255, 255, 255, .76);
+            border-radius: 999px;
+            color: #5d7a82;
+            line-height: 1;
+            text-align: center;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255,255,255,.83), rgba(209,244,246,.67));
+            box-shadow: 0 4px 12px rgba(45, 149, 164, .13), inset 0 1px rgba(255,255,255,.94);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .input-group:focus-within .char-counter {
+            border-color: rgba(112, 218, 227, .84);
+            box-shadow: 0 5px 14px rgba(36, 171, 185, .19), inset 0 1px rgba(255,255,255,.94);
+        }
+
+        /* Final visual tuning: asymmetric liquid-glass field and a restrained display typeface. */
+        h1, .brand-name, .send-label, .btn-clear > span:last-child, .privacy-heading strong, textarea::placeholder {
+            font-family: 'Smiley Display', 'Noto Sans SC', sans-serif;
+            font-style: normal;
+            font-weight: 400;
+        }
+
+        .brand-name { font-size: 21px; letter-spacing: .03em; }
+        h1 { letter-spacing: .025em; }
+        .send-label { letter-spacing: .045em; }
+        textarea::placeholder { color: #789199; opacity: .9; }
+
+        .composer {
+            border-radius: 72px 166px 86px 80px / 80px 104px 98px 92px;
+            background:
+                radial-gradient(ellipse 58% 46% at 94% 92%, rgba(255,255,255,.92) 0 19%, rgba(255,255,255,0) 74%),
+                radial-gradient(ellipse 68% 45% at 11% 2%, rgba(255,255,255,.96) 0 17%, rgba(255,255,255,0) 70%),
+                linear-gradient(128deg, rgba(255,255,255,.98) 2%, rgba(237,250,251,.76) 53%, rgba(177,230,236,.5) 100%);
+            box-shadow:
+                0 20px 38px rgba(31, 151, 170, .2),
+                0 0 0 6px rgba(196, 246, 248, .3),
+                inset 3px 3px 5px rgba(255,255,255,1),
+                inset -12px -15px 26px rgba(81, 195, 209, .13);
+        }
+
+        textarea {
+            border-radius: 61px 148px 72px 63px / 68px 92px 81px 74px;
+            padding: 26px 27px 82px;
+            background:
+                linear-gradient(155deg, rgba(255,255,255,.46) 0 46%, rgba(224,245,247,.1) 47% 100%),
+                linear-gradient(130deg, rgba(255,255,255,.65), rgba(239,250,251,.14));
+        }
+
+        .composer::before {
+            bottom: -40%;
+            left: 17%;
+            width: 112%;
+            height: 91%;
+            background: radial-gradient(ellipse at 40% 42%, rgba(255,255,255,.97) 0 13%, rgba(255,255,255,.39) 47%, rgba(255,255,255,0) 72%);
+        }
+
+        .send-note {
+            min-height: 15px;
+            margin-top: 20px;
+            color: #6f858b;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .privacy-card { margin-top: 17px; }
+
+        @media (max-height: 680px) {
+            .send-note { min-height: 12px; margin-top: 12px; font-size: 9px; }
+            .privacy-card { margin-top: 10px; }
+        }
+
+        /* Top copy gets a deliberately colorful display treatment; pairing badge stays unchanged. */
+        .brand-name, h1 {
+            font-family: 'Play Display', 'Smiley Display', 'Noto Sans SC', sans-serif;
+            color: transparent;
+            background: linear-gradient(105deg, #eb6e7a 0%, #f2a259 23%, #26b9bd 49%, #4a90dc 72%, #8768ca 100%);
+            background-size: 100% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            -webkit-text-stroke: 0;
+            filter: drop-shadow(0 3px 3px rgba(54, 131, 163, .16));
+        }
+
+        .brand-name {
+            font-size: 27px;
+            letter-spacing: .075em;
+            transform: rotate(-.8deg) translateY(-1px);
+        }
+
+        h1 {
+            font-size: clamp(50px, 12.4vw, 65px);
+            line-height: 1.05;
+            letter-spacing: .07em;
+            background-image: linear-gradient(104deg, #e76082 0%, #f49a63 24%, #19b8bd 48%, #397fd8 72%, #7d5bc7 100%);
+            text-shadow: 0 8px 18px rgba(53, 143, 183, .2);
+            animation: none;
+        }
+
+        .eyebrow {
+            color: transparent;
+            font-family: 'DM Sans', 'Noto Sans SC', sans-serif;
+            font-weight: 700;
+            letter-spacing: .16em;
+            background: linear-gradient(90deg, #e76e82 0%, #4c88d9 45%, #1ab4b5 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-copy {
+            color: transparent;
+            font-family: 'Play Display', 'Smiley Display', 'Noto Sans SC', sans-serif;
+            font-size: 16px;
+            line-height: 1.55;
+            letter-spacing: .035em;
+            background: linear-gradient(100deg, #e46b82 0%, #ad69b8 29%, #258fcb 56%, #16aa9f 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .trust-line {
+            color: #25839a;
+            font-family: 'Play Display', 'Smiley Display', 'Noto Sans SC', sans-serif;
+            font-size: 14px;
+            letter-spacing: .035em;
+        }
+
+        .trust-line > span:not(.trust-separator) {
+            color: transparent;
+            background: linear-gradient(100deg, #e06c85, #8e67bf 45%, #178fab 73%, #12a895);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .trust-line .trust-separator {
+            color: #e58e9a;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .trust-icon {
+            color: #3197ab;
+            filter: drop-shadow(0 3px 7px rgba(55, 161, 182, .18));
+        }
+
+        /* Keep the editor scrollable without leaving Android's scrollbar track on screen. */
+        textarea {
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        textarea::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        /* Refracted liquid-glass treatment for the editor and both controls. */
+        .composer {
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.94);
+            background:
+                radial-gradient(ellipse 72% 52% at 91% 96%, rgba(139, 235, 240, .48) 0%, rgba(207, 250, 251, .12) 49%, transparent 72%),
+                radial-gradient(ellipse 68% 42% at 8% 0%, rgba(255,255,255,.98) 0%, rgba(255,255,255,.28) 43%, transparent 74%),
+                linear-gradient(134deg, rgba(255,255,255,.78) 0%, rgba(229,248,250,.42) 54%, rgba(112,211,222,.33) 100%);
+            box-shadow:
+                0 21px 37px rgba(22, 134, 154, .24),
+                0 5px 12px rgba(255,255,255,.94),
+                0 0 0 2px rgba(92, 211, 223, .36),
+                0 0 0 7px rgba(191, 244, 246, .3),
+                inset 2px 2px 4px rgba(255,255,255,1),
+                inset -13px -16px 25px rgba(34, 168, 187, .2);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+        }
+
+        .composer::before {
+            z-index: 3;
+            bottom: -34%;
+            left: 21%;
+            width: 103%;
+            height: 86%;
+            opacity: .72;
+            background: radial-gradient(ellipse at 38% 39%, rgba(255,255,255,.98) 0 12%, rgba(255,255,255,.44) 45%, rgba(255,255,255,0) 73%);
+            mix-blend-mode: screen;
+        }
+
+        .composer::after {
+            z-index: 4;
+            top: 10px;
+            right: 13%;
+            width: 45%;
+            height: 3px;
+            opacity: .95;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,1), rgba(193,249,252,.92), transparent);
+            box-shadow: 0 0 13px rgba(255,255,255,.96);
+        }
+
+        textarea {
+            border: 1px solid rgba(255,255,255,.68);
+            background:
+                linear-gradient(154deg, rgba(255,255,255,.45) 0 47%, rgba(230,249,250,.14) 48% 100%),
+                linear-gradient(130deg, rgba(255,255,255,.5), rgba(223,246,248,.16));
+            box-shadow:
+                inset 1px 2px 2px rgba(255,255,255,.8),
+                inset -9px -12px 22px rgba(41, 177, 194, .08);
+            backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
+        }
+
+        .clear-disc, .send-disc {
+            position: relative;
+            overflow: hidden;
+            border-color: rgba(255,255,255,.97);
+            background:
+                radial-gradient(ellipse 44% 23% at 31% 18%, rgba(255,255,255,1) 0%, rgba(255,255,255,.68) 55%, transparent 100%),
+                radial-gradient(circle at 75% 82%, rgba(86, 211, 222, .7) 0%, rgba(159,234,239,.42) 35%, rgba(248,255,255,.78) 75%);
+            box-shadow:
+                0 12px 24px rgba(18, 139, 160, .25),
+                0 0 0 2px rgba(201, 248, 250, .32),
+                inset 2px 3px 4px rgba(255,255,255,1),
+                inset -9px -12px 16px rgba(37, 168, 185, .24);
+            backdrop-filter: blur(16px) saturate(140%);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+        }
+
+        .clear-disc::before, .send-disc::before {
+            position: absolute;
+            top: 6%;
+            left: 15%;
+            width: 63%;
+            height: 29%;
+            content: '';
+            border-radius: 50%;
+            background: rgba(255,255,255,.72);
+            filter: blur(3px);
+        }
+
+        .clear-disc svg, .send-disc svg { position: relative; z-index: 2; }
+
+        .btn-send {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            border-color: rgba(255,255,255,.95);
+            background:
+                radial-gradient(ellipse 48% 130% at 86% 80%, rgba(80,211,222,.58) 0%, rgba(180,240,244,.24) 45%, transparent 72%),
+                linear-gradient(102deg, rgba(255,255,255,.87) 0%, rgba(242,254,254,.6) 42%, rgba(156,229,235,.47) 100%);
+            box-shadow:
+                0 15px 28px rgba(20, 143, 164, .25),
+                0 0 0 2px rgba(107, 219, 230, .4),
+                0 0 0 6px rgba(211, 252, 253, .24),
+                inset 2px 3px 4px rgba(255,255,255,1),
+                inset -12px -10px 19px rgba(39, 171, 187, .2);
+            backdrop-filter: blur(18px) saturate(145%);
+            -webkit-backdrop-filter: blur(18px) saturate(145%);
+        }
+
+        .btn-send::before {
+            position: absolute;
+            z-index: 0;
+            top: 8%;
+            left: 12%;
+            width: 58%;
+            height: 35%;
+            content: '';
+            border-radius: 50%;
+            opacity: .86;
+            background: linear-gradient(100deg, rgba(255,255,255,.93), rgba(255,255,255,.18));
+            filter: blur(5px);
+            pointer-events: none;
+        }
+
+        .btn-send > span { position: relative; z-index: 1; }
+
+        /* The page itself is a softly refracted glass field, not a flat colour wash. */
+        body {
+            background:
+                radial-gradient(ellipse 52% 27% at 91% 5%, rgba(168, 235, 242, .82) 0%, rgba(208,248,250,.38) 44%, transparent 78%),
+                radial-gradient(ellipse 60% 35% at 6% 93%, rgba(170, 239, 229, .62) 0%, rgba(227,251,247,.25) 47%, transparent 82%),
+                radial-gradient(ellipse 34% 22% at 84% 68%, rgba(255,255,255,.8) 0%, transparent 73%),
+                linear-gradient(141deg, #fbfdfd 0%, #eff8f8 48%, #e1f3f5 100%);
+        }
+
+        body::before {
+            opacity: .72;
+            background:
+                linear-gradient(124deg, transparent 0 38%, rgba(255,255,255,.48) 47%, transparent 61%),
+                radial-gradient(ellipse at 82% 10%, rgba(255,255,255,.7) 0 10%, transparent 45%);
+            filter: blur(12px);
+        }
+
+        .page { isolation: isolate; }
+
+        .page::before, .page::after {
+            position: absolute;
+            z-index: -1;
+            content: '';
+            pointer-events: none;
+        }
+
+        .page::before {
+            top: -178px;
+            right: -202px;
+            width: 380px;
+            height: 380px;
+            border: 1px solid rgba(255,255,255,.78);
+            border-radius: 50%;
+            background: radial-gradient(circle at 28% 72%, rgba(255,255,255,.78), rgba(160,225,235,.22) 48%, transparent 70%);
+            box-shadow: inset 9px -12px 25px rgba(255,255,255,.62), inset -14px 14px 25px rgba(63,185,202,.12), 0 18px 45px rgba(57,151,168,.1);
+        }
+
+        .page::after {
+            bottom: -145px;
+            left: -120px;
+            width: 330px;
+            height: 255px;
+            border: 1px solid rgba(255,255,255,.58);
+            border-radius: 50%;
+            background: radial-gradient(ellipse at 65% 22%, rgba(255,255,255,.82), rgba(164,235,228,.21) 48%, transparent 72%);
+            box-shadow: inset 8px 8px 22px rgba(255,255,255,.52), 0 -8px 30px rgba(58,177,168,.09);
+        }
+
+        .orb {
+            border-color: rgba(255,255,255,.96);
+            box-shadow: -18px 24px 44px rgba(52,153,171,.16), inset 10px -12px 28px rgba(255,255,255,.82), inset -12px 12px 24px rgba(72,189,207,.13);
+        }
+
+        /* Transparent core + coloured bevel: the surface must reveal the light field beneath it. */
+        .composer {
+            border: 2px solid transparent;
+            background:
+                linear-gradient(142deg, rgba(255,255,255,.22) 0%, rgba(235,250,251,.1) 53%, rgba(93,205,220,.18) 100%) padding-box,
+                linear-gradient(130deg, rgba(255,255,255,.98) 0%, rgba(115,220,232,.92) 17%, rgba(255,255,255,.74) 48%, rgba(82,191,210,.84) 78%, rgba(255,255,255,.96) 100%) border-box;
+            box-shadow:
+                0 24px 39px rgba(17,124,145,.25),
+                0 7px 13px rgba(255,255,255,.72),
+                inset 2px 2px 3px rgba(255,255,255,.92),
+                inset -16px -17px 27px rgba(29,165,184,.22),
+                inset 14px 13px 24px rgba(255,255,255,.18);
+            backdrop-filter: blur(26px) saturate(155%);
+            -webkit-backdrop-filter: blur(26px) saturate(155%);
+        }
+
+        .composer::before {
+            z-index: 1;
+            bottom: -31%;
+            left: 17%;
+            width: 111%;
+            height: 88%;
+            opacity: .54;
+            background: radial-gradient(ellipse at 37% 37%, rgba(255,255,255,.96) 0 11%, rgba(255,255,255,.3) 43%, rgba(255,255,255,0) 73%);
+            mix-blend-mode: screen;
+        }
+
+        .composer::after { pointer-events: none; }
+
+        textarea {
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .clear-disc, .send-disc {
+            border: 2px solid transparent;
+            background:
+                radial-gradient(ellipse 46% 25% at 31% 19%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.2) 60%, transparent 100%) padding-box,
+                linear-gradient(135deg, rgba(255,255,255,.98), rgba(81,202,218,.84) 25%, rgba(255,255,255,.74) 56%, rgba(63,186,205,.82) 78%, rgba(255,255,255,.95)) border-box;
+            box-shadow: 0 14px 25px rgba(13,127,151,.28), inset 2px 2px 3px rgba(255,255,255,.92), inset -9px -11px 15px rgba(37,161,181,.23);
+            backdrop-filter: blur(20px) saturate(155%);
+            -webkit-backdrop-filter: blur(20px) saturate(155%);
+        }
+
+        .btn-send {
+            border: 2px solid transparent;
+            background:
+                linear-gradient(105deg, rgba(255,255,255,.26), rgba(222,248,250,.12) 48%, rgba(76,203,218,.23) 100%) padding-box,
+                linear-gradient(102deg, rgba(255,255,255,.98) 0%, rgba(100,213,226,.88) 19%, rgba(255,255,255,.78) 49%, rgba(74,194,211,.83) 80%, rgba(255,255,255,.96) 100%) border-box;
+            box-shadow: 0 17px 30px rgba(12,128,151,.28), inset 2px 2px 3px rgba(255,255,255,.94), inset -13px -12px 19px rgba(28,165,183,.2);
+            backdrop-filter: blur(22px) saturate(160%);
+            -webkit-backdrop-filter: blur(22px) saturate(160%);
+        }
+
+        /* Send feedback now uses the same thick, refractive material as the controls. */
+        .feedback-card {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            border-color: rgba(255,255,255,.98);
+            background:
+                radial-gradient(ellipse 55% 120% at 88% 80%, rgba(75,219,207,.54) 0%, rgba(182,245,241,.24) 44%, transparent 74%),
+                linear-gradient(118deg, rgba(255,255,255,.9), rgba(218,250,248,.58));
+            box-shadow:
+                0 18px 40px rgba(23, 142, 157, .28),
+                0 0 0 2px rgba(181,247,244,.3),
+                inset 2px 3px 4px rgba(255,255,255,1),
+                inset -10px -11px 17px rgba(48,193,196,.18);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+        }
+
+        .feedback-card::before {
+            position: absolute;
+            z-index: 0;
+            top: 6%;
+            left: 12%;
+            width: 61%;
+            height: 43%;
+            content: '';
+            border-radius: 50%;
+            background: linear-gradient(110deg, rgba(255,255,255,.92), rgba(255,255,255,.14));
+            filter: blur(5px);
+        }
+
+        .feedback-card > * { position: relative; z-index: 1; }
+
+        .feedback-icon {
+            position: relative;
+            overflow: hidden;
+            border-color: rgba(255,255,255,.98);
+            box-shadow: 0 6px 13px rgba(29,159,163,.28), 0 0 0 2px rgba(190,245,241,.28), inset 2px 2px 3px #fff, inset -6px -8px 11px rgba(45,185,187,.2);
+        }
+
+        .feedback-wave, .feedback-wave::after, .feedback-wave::before {
+            border-width: 2px;
+            background: radial-gradient(circle, rgba(193,255,249,.22) 0%, rgba(111,228,218,.08) 45%, transparent 72%);
+            box-shadow: inset 0 0 11px rgba(255,255,255,.86), 0 0 14px rgba(76,222,212,.55), 0 0 30px rgba(76,222,212,.24);
+        }
+
+        .send-feedback.failure .feedback-card {
+            background:
+                radial-gradient(ellipse 55% 120% at 88% 80%, rgba(245,132,146,.55) 0%, rgba(255,215,220,.28) 44%, transparent 74%),
+                linear-gradient(118deg, rgba(255,255,255,.93), rgba(255,226,229,.62));
+            box-shadow: 0 18px 40px rgba(177,75,91,.26), 0 0 0 2px rgba(255,213,218,.35), inset 2px 3px 4px #fff, inset -10px -11px 17px rgba(235,115,130,.18);
+        }
+
+        .send-feedback.failure .feedback-icon {
+            box-shadow: 0 6px 13px rgba(180,74,91,.25), 0 0 0 2px rgba(255,220,224,.3), inset 2px 2px 3px #fff, inset -6px -8px 11px rgba(235,115,130,.2);
+        }
+
+        .send-feedback.failure .feedback-wave, .send-feedback.failure .feedback-wave::after, .send-feedback.failure .feedback-wave::before {
+            background: radial-gradient(circle, rgba(255,222,225,.26) 0%, rgba(245,133,146,.08) 45%, transparent 72%);
+            box-shadow: inset 0 0 11px rgba(255,255,255,.86), 0 0 14px rgba(239,126,139,.52), 0 0 30px rgba(239,126,139,.23);
+        }
+
+        /* Final material pass: neutral transparent cores, with the colour kept in the thick refractive rim. */
+        .composer {
+            border: 3px solid transparent;
+            background:
+                linear-gradient(140deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,.11) 55%, rgba(221,247,248,.17) 100%) padding-box,
+                conic-gradient(from 205deg at 70% 74%, rgba(94,209,224,.92), rgba(255,255,255,.98), rgba(148,221,231,.9), rgba(255,255,255,.98), rgba(70,192,211,.9), rgba(255,255,255,.98), rgba(94,209,224,.92)) border-box;
+            box-shadow:
+                0 18px 31px rgba(48,104,119,.2),
+                -7px 8px 16px rgba(69,119,132,.13),
+                0 0 0 1px rgba(255,255,255,.86),
+                inset 4px 4px 8px rgba(255,255,255,.9),
+                inset -11px -14px 19px rgba(72,187,203,.12),
+                inset 0 0 28px rgba(255,255,255,.16);
+            backdrop-filter: blur(30px) saturate(128%);
+            -webkit-backdrop-filter: blur(30px) saturate(128%);
+        }
+
+        .composer::before {
+            opacity: .42;
+            background: radial-gradient(ellipse at 38% 39%, rgba(255,255,255,.88) 0 11%, rgba(255,255,255,.22) 42%, rgba(255,255,255,0) 73%);
+        }
+
+        .clear-disc, .send-disc {
+            border: 3px solid transparent;
+            background:
+                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.83), rgba(255,255,255,.1) 66%, transparent 100%) padding-box,
+                conic-gradient(from 215deg at 68% 70%, rgba(84,201,218,.86), rgba(255,255,255,.98), rgba(171,230,237,.88), rgba(255,255,255,.97), rgba(58,183,204,.82), rgba(255,255,255,.98), rgba(84,201,218,.86)) border-box;
+            box-shadow: 0 12px 22px rgba(50,102,117,.22), -3px 5px 9px rgba(60,108,120,.13), inset 3px 3px 5px rgba(255,255,255,.94), inset -7px -9px 13px rgba(67,179,195,.15);
+            backdrop-filter: blur(22px) saturate(125%);
+            -webkit-backdrop-filter: blur(22px) saturate(125%);
+        }
+
+        .btn-send {
+            border: 3px solid transparent;
+            background:
+                linear-gradient(104deg, rgba(255,255,255,.23), rgba(255,255,255,.08) 51%, rgba(219,247,249,.16)) padding-box,
+                conic-gradient(from 210deg at 74% 69%, rgba(74,196,214,.9), rgba(255,255,255,.98), rgba(164,228,235,.9), rgba(255,255,255,.98), rgba(65,184,204,.88), rgba(255,255,255,.98), rgba(74,196,214,.9)) border-box;
+            box-shadow: 0 14px 25px rgba(43,98,112,.22), -5px 5px 10px rgba(49,104,117,.12), inset 3px 3px 5px rgba(255,255,255,.95), inset -10px -10px 15px rgba(65,180,196,.13);
+            backdrop-filter: blur(24px) saturate(128%);
+            -webkit-backdrop-filter: blur(24px) saturate(128%);
+        }
+
+        .privacy-card {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            border: 2px solid transparent;
+            background:
+                linear-gradient(132deg, rgba(255,255,255,.26), rgba(237,251,251,.12) 58%, rgba(179,232,235,.19)) padding-box,
+                conic-gradient(from 208deg at 75% 78%, rgba(79,195,211,.74), rgba(255,255,255,.98), rgba(181,234,238,.85), rgba(255,255,255,.96), rgba(76,188,205,.72), rgba(255,255,255,.98), rgba(79,195,211,.74)) border-box;
+            box-shadow: 0 13px 24px rgba(44,103,115,.16), 0 0 0 1px rgba(255,255,255,.7), inset 3px 3px 5px rgba(255,255,255,.9), inset -9px -10px 16px rgba(64,177,191,.1);
+            backdrop-filter: blur(24px) saturate(125%);
+            -webkit-backdrop-filter: blur(24px) saturate(125%);
+        }
+
+        .privacy-card::before {
+            position: absolute;
+            z-index: 0;
+            top: -48%;
+            left: 18%;
+            width: 72%;
+            height: 105%;
+            content: '';
+            border-radius: 50%;
+            opacity: .48;
+            background: radial-gradient(ellipse at 36% 65%, rgba(255,255,255,.92), rgba(255,255,255,.16) 45%, transparent 72%);
+            filter: blur(4px);
+            pointer-events: none;
+        }
+
+        .privacy-card > * { position: relative; z-index: 1; }
+
+        .privacy-icon {
+            border: 2px solid transparent;
+            background:
+                radial-gradient(circle at 32% 22%, rgba(255,255,255,.85), rgba(255,255,255,.12) 64%, transparent 100%) padding-box,
+                linear-gradient(135deg, rgba(255,255,255,.98), rgba(84,201,216,.78), rgba(255,255,255,.96)) border-box;
+            box-shadow: 0 7px 13px rgba(44,105,117,.16), inset 2px 2px 4px rgba(255,255,255,.95), inset -5px -6px 9px rgba(61,178,193,.14);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+
+        /* Continuous bevels only — no radial colour burst inside the glass. */
+        .composer {
+            background:
+                linear-gradient(142deg, rgba(255,255,255,.24) 0%, rgba(255,255,255,.08) 56%, rgba(223,247,248,.15) 100%) padding-box,
+                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(112,215,229,.78) 13%, rgba(255,255,255,.96) 29%, rgba(198,238,242,.82) 51%, rgba(255,255,255,.97) 73%, rgba(76,192,211,.82) 96%, rgba(255,255,255,.98) 100%) border-box;
+        }
+
+        .clear-disc, .send-disc {
+            background:
+                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.83), rgba(255,255,255,.1) 66%, transparent 100%) padding-box,
+                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(91,203,219,.77) 17%, rgba(255,255,255,.96) 43%, rgba(143,220,230,.75) 68%, rgba(255,255,255,.98) 100%) border-box;
+        }
+
+        .btn-send {
+            background:
+                linear-gradient(104deg, rgba(255,255,255,.23), rgba(255,255,255,.08) 51%, rgba(219,247,249,.16)) padding-box,
+                linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(84,202,219,.78) 15%, rgba(255,255,255,.96) 36%, rgba(175,230,236,.74) 62%, rgba(255,255,255,.98) 79%, rgba(71,188,207,.8) 100%) border-box;
+        }
+
+        .privacy-card {
+            background:
+                linear-gradient(132deg, rgba(255,255,255,.26), rgba(237,251,251,.12) 58%, rgba(179,232,235,.19)) padding-box,
+                linear-gradient(132deg, rgba(255,255,255,.98) 0%, rgba(100,203,217,.71) 16%, rgba(255,255,255,.95) 35%, rgba(184,231,236,.72) 64%, rgba(255,255,255,.98) 100%) border-box;
+        }
+
+        /* Clear glass: white translucent core; cyan is restricted to the refractive edge. */
+        .composer {
+            background:
+                linear-gradient(140deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.045) 56%, rgba(255,255,255,.11) 100%) padding-box,
+                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(194,229,234,.72) 13%, rgba(255,255,255,.96) 29%, rgba(210,239,242,.7) 51%, rgba(255,255,255,.97) 73%, rgba(103,203,216,.72) 96%, rgba(255,255,255,.98) 100%) border-box;
+            box-shadow:
+                0 18px 31px rgba(48,104,119,.18),
+                -7px 8px 16px rgba(69,119,132,.1),
+                0 0 0 1px rgba(255,255,255,.84),
+                inset 4px 4px 8px rgba(255,255,255,.8),
+                inset -11px -14px 19px rgba(72,187,203,.075),
+                inset 0 0 28px rgba(255,255,255,.1);
+            backdrop-filter: blur(9px) saturate(106%);
+            -webkit-backdrop-filter: blur(9px) saturate(106%);
+        }
+
+        .composer::before { opacity: .26; }
+
+        .clear-disc, .send-disc {
+            background:
+                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.72), rgba(255,255,255,.04) 66%, transparent 100%) padding-box,
+                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(190,227,233,.66) 17%, rgba(255,255,255,.96) 43%, rgba(203,235,239,.64) 68%, rgba(255,255,255,.98) 100%) border-box;
+            box-shadow: 0 12px 22px rgba(50,102,117,.18), -3px 5px 9px rgba(60,108,120,.1), inset 3px 3px 5px rgba(255,255,255,.85), inset -7px -9px 13px rgba(67,179,195,.08);
+            backdrop-filter: blur(10px) saturate(106%);
+            -webkit-backdrop-filter: blur(10px) saturate(106%);
+        }
+
+        .btn-send {
+            background:
+                linear-gradient(104deg, rgba(255,255,255,.14), rgba(255,255,255,.035) 51%, rgba(255,255,255,.1)) padding-box,
+                linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(188,226,232,.67) 15%, rgba(255,255,255,.96) 36%, rgba(208,238,241,.63) 62%, rgba(255,255,255,.98) 79%, rgba(105,202,214,.68) 100%) border-box;
+            box-shadow: 0 14px 25px rgba(43,98,112,.18), -5px 5px 10px rgba(49,104,117,.09), inset 3px 3px 5px rgba(255,255,255,.86), inset -10px -10px 15px rgba(65,180,196,.07);
+            backdrop-filter: blur(10px) saturate(106%);
+            -webkit-backdrop-filter: blur(10px) saturate(106%);
+        }
+
+        .privacy-card {
+            background:
+                linear-gradient(132deg, rgba(255,255,255,.16), rgba(255,255,255,.045) 58%, rgba(255,255,255,.12)) padding-box,
+                linear-gradient(132deg, rgba(255,255,255,.98) 0%, rgba(191,228,234,.63) 16%, rgba(255,255,255,.95) 35%, rgba(207,237,240,.62) 64%, rgba(255,255,255,.98) 100%) border-box;
+            box-shadow: 0 13px 24px rgba(44,103,115,.13), 0 0 0 1px rgba(255,255,255,.66), inset 3px 3px 5px rgba(255,255,255,.82), inset -9px -10px 16px rgba(64,177,191,.06);
+            backdrop-filter: blur(10px) saturate(106%);
+            -webkit-backdrop-filter: blur(10px) saturate(106%);
+        }
+
+        .privacy-card::before { opacity: .25; }
+
+        /* Reference-frame construction: outer shadow → blue-grey refractive rim → white inner rim → clear centre. */
+        .composer {
+            border: 5px solid transparent;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.035) 52%, rgba(239,249,250,.12)) padding-box,
+                linear-gradient(138deg, rgba(255,255,255,.99) 0%, rgba(100,120,124,.46) 8%, rgba(247,255,255,.97) 15%, rgba(156,204,212,.78) 28%, rgba(255,255,255,.98) 43%, rgba(218,237,239,.88) 68%, rgba(97,132,139,.46) 90%, rgba(255,255,255,.98) 100%) border-box;
+            box-shadow:
+                8px 14px 25px rgba(49,65,68,.25),
+                -6px 6px 14px rgba(95,121,126,.16),
+                0 0 0 1px rgba(82,102,106,.4),
+                inset 2px 2px 0 rgba(255,255,255,.95),
+                inset -3px -4px 0 rgba(82,123,131,.22),
+                inset 0 0 18px rgba(255,255,255,.13);
+            backdrop-filter: blur(5px) saturate(104%);
+            -webkit-backdrop-filter: blur(5px) saturate(104%);
+        }
+
+        .composer::before {
+            z-index: 1;
+            top: 4px;
+            bottom: auto;
+            left: 11%;
+            width: 46%;
+            height: 15%;
+            opacity: .78;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,.92), rgba(255,255,255,.08) 60%, transparent 78%);
+            filter: blur(5px);
+        }
+
+        .composer::after {
+            top: 5px;
+            right: auto;
+            left: 13%;
+            width: 34%;
+            height: 3px;
+            opacity: .96;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.98), transparent);
+            box-shadow: 0 0 8px rgba(255,255,255,.92);
+        }
+
+        textarea {
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+            margin: 3px;
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 56px 136px 66px 67px / 63px 87px 77px 72px;
+            background: linear-gradient(138deg, rgba(255,255,255,.08), rgba(255,255,255,.015));
+            box-shadow: inset 1px 1px 1px rgba(255,255,255,.62), inset -4px -5px 10px rgba(124,164,170,.045);
+        }
+
+        .btn-send {
+            border: 4px solid transparent;
+            background:
+                linear-gradient(106deg, rgba(255,255,255,.16), rgba(255,255,255,.025) 56%, rgba(255,255,255,.11)) padding-box,
+                linear-gradient(105deg, rgba(255,255,255,.99) 0%, rgba(102,124,129,.42) 10%, rgba(255,255,255,.97) 20%, rgba(163,207,214,.72) 39%, rgba(255,255,255,.98) 63%, rgba(107,140,146,.46) 90%, rgba(255,255,255,.99) 100%) border-box;
+            box-shadow: 6px 10px 20px rgba(43,59,62,.23), -4px 5px 11px rgba(92,115,119,.12), 0 0 0 1px rgba(85,105,109,.35), inset 2px 2px 0 rgba(255,255,255,.96), inset -3px -3px 0 rgba(93,131,138,.18);
+            backdrop-filter: blur(5px) saturate(104%);
+            -webkit-backdrop-filter: blur(5px) saturate(104%);
+        }
+
+        .clear-disc, .send-disc {
+            border: 4px solid transparent;
+            background:
+                radial-gradient(ellipse at 34% 24%, rgba(255,255,255,.56), rgba(255,255,255,.04) 63%, transparent 76%) padding-box,
+                linear-gradient(135deg, rgba(255,255,255,.99) 0%, rgba(102,125,130,.43) 12%, rgba(255,255,255,.98) 25%, rgba(161,207,214,.7) 46%, rgba(255,255,255,.98) 69%, rgba(97,128,135,.43) 91%, rgba(255,255,255,.99) 100%) border-box;
+            box-shadow: 5px 9px 16px rgba(44,58,62,.23), -3px 4px 8px rgba(96,118,122,.12), 0 0 0 1px rgba(87,106,110,.34), inset 2px 2px 0 rgba(255,255,255,.96), inset -3px -4px 0 rgba(88,127,135,.17);
+        }
+
+        .privacy-card {
+            border: 4px solid transparent;
+            background:
+                linear-gradient(137deg, rgba(255,255,255,.16), rgba(255,255,255,.035) 55%, rgba(250,255,255,.11)) padding-box,
+                linear-gradient(133deg, rgba(255,255,255,.99) 0%, rgba(104,128,133,.4) 11%, rgba(255,255,255,.98) 22%, rgba(171,211,216,.66) 42%, rgba(255,255,255,.98) 65%, rgba(107,137,143,.42) 90%, rgba(255,255,255,.99) 100%) border-box;
+            box-shadow: 5px 10px 19px rgba(46,62,65,.19), -3px 4px 9px rgba(91,115,119,.1), 0 0 0 1px rgba(86,106,110,.3), inset 2px 2px 0 rgba(255,255,255,.94), inset -3px -3px 0 rgba(88,127,135,.14);
+            backdrop-filter: blur(5px) saturate(104%);
+            -webkit-backdrop-filter: blur(5px) saturate(104%);
+        }
+
+        .privacy-card::before {
+            top: 2px;
+            left: 12%;
+            width: 42%;
+            height: 28%;
+            opacity: .52;
+            background: radial-gradient(ellipse, rgba(255,255,255,.88), rgba(255,255,255,.08) 64%, transparent 78%);
+        }
+
+        /* Typing must not replace the neutral glass rim with the old cyan focus ring. */
+        .composer:focus-within {
+            border-color: transparent;
+            outline: none;
+            box-shadow:
+                8px 14px 25px rgba(49,65,68,.25),
+                -6px 6px 14px rgba(95,121,126,.16),
+                0 0 0 1px rgba(82,102,106,.4),
+                inset 2px 2px 0 rgba(255,255,255,.95),
+                inset -3px -4px 0 rgba(82,123,131,.22),
+                inset 0 0 18px rgba(255,255,255,.13);
+        }
+
+        textarea:focus, textarea:focus-visible { outline: none; }
+
+        @keyframes top-copy-shimmer {
+            from { background-position: 0% 48%; }
+            to { background-position: 100% 54%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            h1 { animation: none; }
+        }
+
+        @media (max-height: 680px) {
+            h1 { font-size: clamp(46px, 11.4vw, 59px); }
+            .brand-name { font-size: 24px; }
+            .hero-copy { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="orb" aria-hidden="true"></div>
+        <div class="topbar">
+            <div class="brand" aria-label="无线输入板">
+                <svg class="brand-icon" viewBox="0 0 48 38" fill="none" aria-hidden="true"><rect x="1.5" y="9" width="14" height="26" rx="2.5" stroke="currentColor" stroke-width="2.4"/><path d="M5.5 30h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="20" y="1.5" width="26.5" height="21" rx="2.5" stroke="#26343a" stroke-width="2.4"/><path d="M24.5 29.5h18" stroke="#26343a" stroke-width="2.4" stroke-linecap="round"/><path d="M17.5 22.5c7.5 0 8.5 7 8.5 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+                <span class="brand-name">无线输入板</span>
+            </div>
+            <div id="statusBadge" class="status-badge">
+                <span class="status-dot"></span>
+                <span id="statusText">等待配对</span>
+            </div>
+        </div>
+
+        <section class="hero">
+            <p class="eyebrow">PHONE → WINDOWS</p>
+            <h1>让文字，<br>跨过屏幕。</h1>
+            <p class="hero-copy">输入或粘贴内容，发送后即可在电脑中直接使用。</p>
+            <div class="trust-line">
+                <svg class="trust-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.8 19 6v5.2c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6l7-3.2Z" stroke="currentColor" stroke-width="1.6"/><rect x="8.7" y="10.4" width="6.6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M10.2 10.4V9a1.8 1.8 0 0 1 3.6 0v1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span>端到端加密</span><span class="trust-separator">·</span><span>电脑端在线</span>
+            </div>
+        </section>
+
+        <section class="input-group" aria-label="发送文本">
+            <div class="composer">
+                <textarea id="textInput" placeholder="输入或粘贴要发送到电脑的文字" disabled></textarea>
+            </div>
+            <div class="char-counter"><span id="charCount">0</span> / 2048</div>
+        </section>
+
+        <section class="action-row" aria-label="发送操作">
+            <button id="btnClear" class="btn-clear" type="button" disabled>
+                <span class="clear-disc"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.8 3.8 5.4 5.4a2.2 2.2 0 0 1 0 3.1l-7.7 7.7a2.2 2.2 0 0 1-3.1 0L3.8 14.4a2.2 2.2 0 0 1 0-3.1l7.7-7.5a2.2 2.2 0 0 1 3.3 0Z" stroke="currentColor" stroke-width="1.7"/><path d="m8.2 7.2 8.6 8.6" stroke="currentColor" stroke-width="1.7"/></svg></span>
+                <span>清空</span>
+            </button>
+            <button id="btnSend" class="btn-send" type="button" disabled>
+                <span id="sendLabel" class="send-label">发送到电脑</span>
+                <span class="send-disc"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.3 18-3.4-7.6L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m10.4 13.4 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            </button>
+        </section>
+        <p class="send-note">发送后自动写入 Windows 剪贴板</p>
+
+        <aside class="privacy-card">
+            <div class="privacy-heading">
+                <span class="privacy-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.8 19 6v5.2c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6l7-3.2Z" stroke="currentColor" stroke-width="1.45"/><rect x="8.7" y="10.4" width="6.6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.35"/><path d="M10.2 10.4V9a1.8 1.8 0 0 1 3.6 0v1.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></span>
+                <div><strong>内容只属于你的设备</strong><p>文字在本机完成加密，中转服务无法读取明文。</p></div>
+            </div>
+            <div class="connection-line"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>电脑端在线 · 刚刚连接</span></div>
+        </aside>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="sendFeedback" class="send-feedback" aria-live="polite">
+        <div class="feedback-wave"></div>
+        <div class="feedback-card">
+            <span id="feedbackIcon" class="feedback-icon"></span>
+            <span id="feedbackText">已发送到电脑</span>
+        </div>
+    </div>
+
+    <script>
+        let pairingData = null;
+        let cryptoKey = null;
+        const maxBytes = 2048;
+
+        const elInput = document.getElementById('textInput');
+        const elBtnClear = document.getElementById('btnClear');
+        const elBtnSend = document.getElementById('btnSend');
+        const elSendLabel = document.getElementById('sendLabel');
+        const elStatusBadge = document.getElementById('statusBadge');
+        const elStatusText = document.getElementById('statusText');
+        const elCharCount = document.getElementById('charCount');
+        const elToast = document.getElementById('toast');
+        const elSendFeedback = document.getElementById('sendFeedback');
+        const elFeedbackIcon = document.getElementById('feedbackIcon');
+        const elFeedbackText = document.getElementById('feedbackText');
+
+        function base64UrlToArrayBuffer(base64Url) {
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) base64 += '=';
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function arrayBufferToBase64Url(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        function getUtf8Length(str) { return new TextEncoder().encode(str).length; }
+
+        let toastTimeout = null;
+        function showToast(message, isSuccess = true) {
+            elToast.textContent = message;
+            elToast.style.color = isSuccess ? '#b8f5db' : '#ffd2d7';
+            elToast.className = 'toast show';
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { elToast.className = 'toast'; }, 2500);
+        }
+
+        let feedbackTimeout = null;
+        const feedbackStates = {
+            pending: { className: 'pending', text: '正在加密并提交', icon: '…' },
+            relay: { className: 'relay', text: '已到中转服务', icon: '→' },
+            waiting: { className: 'waiting', text: '等待电脑确认', icon: '…' },
+            received: { className: 'success', text: '电脑已接收', icon: null },
+            relay_failed: { className: 'failure', text: '中转失败，请重试', icon: null },
+            timeout: { className: 'timeout', text: '电脑离线或确认超时', icon: '!' }
+        };
+
+        function showSendFeedback(state, persistent = false) {
+            const feedback = feedbackStates[state] || feedbackStates.relay_failed;
+            elSendFeedback.className = `send-feedback ${feedback.className}${persistent ? ' persistent' : ''} show`;
+            elFeedbackText.textContent = feedback.text;
+            if (state === 'received') {
+                elFeedbackIcon.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.3 4.2L19.5 6.8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            } else if (state === 'relay_failed') {
+                elFeedbackIcon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"/></svg>';
+            } else {
+                elFeedbackIcon.textContent = feedback.icon || '…';
+            }
+            clearTimeout(feedbackTimeout);
+            if (!persistent) feedbackTimeout = setTimeout(() => { elSendFeedback.className = 'send-feedback'; }, 1950);
+        }
+
+        const ackTimeoutMs = 8000;
+        let ackAbortController = null;
+        const acceptedAckIds = new Set();
+
+        async function validateAckEnvelope(envelope, expectedMessageId) {
+            if (!cryptoKey || !envelope || envelope.v !== 1 || envelope.type !== 'ack' ||
+                envelope.reply_to !== expectedMessageId || envelope.status !== 'received' ||
+                typeof envelope.id !== 'string' || acceptedAckIds.has(envelope.id)) return false;
+            if (!Number.isFinite(envelope.ts) || Math.abs(Date.now() - envelope.ts) > 120000) return false;
+            try {
+                const aad = new TextEncoder().encode(JSON.stringify({
+                    v: envelope.v, type: envelope.type, id: envelope.id,
+                    reply_to: envelope.reply_to, status: envelope.status, ts: envelope.ts
+                }));
+                const plaintext = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: base64UrlToArrayBuffer(envelope.iv), additionalData: aad, tagLength: 128 },
+                    cryptoKey, base64UrlToArrayBuffer(envelope.ciphertext)
+                );
+                const inner = JSON.parse(new TextDecoder().decode(plaintext));
+                if (inner.reply_to !== expectedMessageId || inner.status !== 'received') return false;
+                acceptedAckIds.add(envelope.id);
+                if (acceptedAckIds.size > 1000) acceptedAckIds.delete(acceptedAckIds.values().next().value);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        async function waitForAck(messageId, startedAt) {
+            ackAbortController = new AbortController();
+            const controller = ackAbortController;
+            const timer = setTimeout(() => controller.abort(), ackTimeoutMs);
+            try {
+                const since = Math.max(0, Math.floor((startedAt - 2000) / 1000));
+                const ackUrl = `https://ntfy.sh/${encodeURIComponent(pairingData.room)}-ack/json?since=${since}`;
+                const response = await fetch(ackUrl, { signal: controller.signal });
+                if (!response.ok || !response.body) return false;
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const event = JSON.parse(line);
+                            if (event.event === 'message' && typeof event.message === 'string') {
+                                const envelope = JSON.parse(event.message);
+                                if (await validateAckEnvelope(envelope, messageId)) return true;
+                            }
+                        } catch (err) {
+                            // 忽略 keepalive 或不匹配的中转事件，继续等待当前消息 ACK。
+                        }
+                    }
+                }
+                return false;
+            } catch (err) {
+                return false;
+            } finally {
+                clearTimeout(timer);
+                // 无论成功匹配还是超时，都关闭 ACK 流，避免每次发送遗留长连接。
+                controller.abort();
+                if (ackAbortController === controller) ackAbortController = null;
+            }
+        }
+
+        function cancelAckWait() {
+            if (ackAbortController) ackAbortController.abort();
+        }
+
+        function enableControls() {
+            elInput.disabled = false;
+            elBtnClear.disabled = false;
+            elBtnSend.disabled = false;
+        }
+
+        async function init() {
+            try {
+                const hash = window.location.hash;
+                if (!hash.startsWith('#v1=')) throw new Error('URL 中未找到有效配对信息，请重新扫码。');
+
+                const encodedData = hash.substring(4);
+                let base64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+                while (base64.length % 4) base64 += '=';
+                pairingData = JSON.parse(atob(base64));
+                if (!pairingData.room || !pairingData.key) throw new Error('配对配置项缺失。');
+
+                if (!window.crypto || !window.crypto.subtle) {
+                    console.warn('Web Crypto API 不可用，降级为明文传输');
+                    elStatusBadge.className = 'status-badge connected';
+                    elStatusText.textContent = '已配对（明文模式）';
+                    enableControls();
+                    showToast('由于网络限制，已自动降级为明文传输。', false);
+                    return;
+                }
+
+                const rawKey = base64UrlToArrayBuffer(pairingData.key);
+                cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt']);
+                elStatusBadge.className = 'status-badge connected';
+                elStatusText.textContent = '已安全配对';
+                enableControls();
+                showToast('配对成功，现在可以发送文字。');
+            } catch (err) {
+                console.error(err);
+                console.warn('密钥导入失败，降级为明文传输');
+                elStatusBadge.className = 'status-badge connected';
+                elStatusText.textContent = '已配对（明文模式）';
+                enableControls();
+                showToast('密钥导入失败，已自动降级为明文模式。', false);
+            }
+        }
+
+        elInput.addEventListener('input', () => {
+            const byteLength = getUtf8Length(elInput.value);
+            elCharCount.textContent = byteLength;
+            if (byteLength > maxBytes) {
+                elCharCount.style.color = 'var(--danger)';
+                elBtnSend.disabled = true;
+            } else {
+                elCharCount.style.color = 'var(--muted)';
+                elBtnSend.disabled = false;
+            }
+        });
+
+        elBtnClear.addEventListener('click', () => {
+            elInput.value = '';
+            elCharCount.textContent = '0';
+            elCharCount.style.color = 'var(--muted)';
+            elBtnSend.disabled = false;
+            elInput.focus();
+        });
+
+        elBtnSend.addEventListener('click', async () => {
+            const text = elInput.value.trim();
+            if (!text) { showToast('请输入有效文本。', false); return; }
+            if (getUtf8Length(text) > maxBytes) { showToast('文本超长，无法发送。', false); return; }
+
+            elBtnSend.disabled = true;
+            elSendLabel.textContent = '加密并提交…';
+            showSendFeedback('pending', true);
+            let ackPromise = null;
+            const isLanMode = Boolean(pairingData.server);
+            try {
+                const messageId = cryptoKey ? arrayBufferToBase64Url(crypto.getRandomValues(new Uint8Array(16))) : `msg_${Math.random().toString(36).substring(2, 15)}`;
+                const timestamp = Date.now();
+                const payload = { v: 1, type: 'clipboard_text', id: messageId, ts: timestamp };
+
+                if (cryptoKey) {
+                    const iv = crypto.getRandomValues(new Uint8Array(12));
+                    const aadBuffer = new TextEncoder().encode(JSON.stringify({ v: 1, type: 'clipboard_text', id: messageId, ts: timestamp }));
+                    const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aadBuffer, tagLength: 128 }, cryptoKey, new TextEncoder().encode(text));
+                    payload.iv = arrayBufferToBase64Url(iv);
+                    payload.ciphertext = arrayBufferToBase64Url(encryptedBuffer);
+                } else {
+                    payload.iv = '';
+                    payload.ciphertext = '';
+                    payload.plaintext = text;
+                }
+
+                // 局域网二维码显式提供 server；其他所有公网托管域名都使用 ntfy。
+                const publishUrl = pairingData.server || `https://ntfy.sh/${encodeURIComponent(pairingData.room)}`;
+                if (!isLanMode) ackPromise = waitForAck(messageId, timestamp);
+
+                const response = await fetch(publishUrl, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+                if (!response.ok) throw new Error(`网络请求错误：${response.status}`);
+                if (isLanMode) {
+                    showToast('电脑已接收。');
+                    showSendFeedback('received');
+                } else {
+                    showToast('已到中转服务，等待电脑确认。');
+                    showSendFeedback('relay', true);
+                    await new Promise(resolve => setTimeout(resolve, 320));
+                    showSendFeedback('waiting', true);
+                    if (await ackPromise) {
+                        showToast('电脑已接收。');
+                        showSendFeedback('received');
+                    } else {
+                        showToast('电脑离线或确认超时。', false);
+                        showSendFeedback('timeout');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                cancelAckWait();
+                showToast(`中转失败：${err.message}`, false);
+                showSendFeedback('relay_failed');
+            } finally {
+                elBtnSend.disabled = false;
+                elSendLabel.textContent = '发送到电脑';
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
