@@ -1784,7 +1784,7 @@
                 }
 
                 const rawKey = base64UrlToArrayBuffer(pairingData.key);
-                cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt']);
+                cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
                 elStatusBadge.className = 'status-badge connected';
                 elStatusText.textContent = '已安全配对';
                 enableControls();
