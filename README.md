@@ -1,29 +1,59 @@
 # Phone Clipboard Web
 
-这是“手机输入 → 电脑剪贴板同步”项目的 **GitHub Pages 静态网页部署仓库**。
-
-本仓库只负责托管手机端 H5 页面，不保存 Windows 桌面端源码、运行配置、日志、配对凭据、room/key 或其他私密数据。
+这是“手机输入 → 电脑剪贴板同步”项目的 **GitHub Pages 静态网页部署仓库**。它只承载手机端 H5，不是完整产品源码仓库。
 
 ## 仓库职责
 
 ```text
 phone-clipboard-web/
-├── index.html   # 手机端静态 H5 页面（HTML / CSS / JavaScript）
-├── fonts/       # 页面使用的本地字体资源
+├── index.html   # 当前手机端静态 H5（HTML / CSS / JavaScript）
+├── fonts/       # 页面引用的本地字体资源
 ├── .nojekyll    # GitHub Pages 静态部署标记
 └── README.md    # 本说明
 ```
 
-完整桌面端与产品源码位于私有综合仓库：
+完整桌面端、测试和产品设计资料维护在私有综合仓库：
 
-`creative-projects-and-tools-hub/01-apps-独立软件工具/phone-to-pc-clipboard/`
+```text
+creative-projects-and-tools-hub/
+└── 01-apps-独立软件工具/
+    └── phone-to-pc-clipboard/
+```
 
 ## 部署地址
 
-GitHub Pages：`https://dhyaniana68-gif.github.io/phone-clipboard-web/`
+```text
+https://dhyaniana68-gif.github.io/phone-clipboard-web/
+```
 
-## 维护约定
+## 数据边界
 
-- `index.html` 保持为可直接部署的静态入口；除非同步修改引用，不随意移动 `fonts/`。
-- 不向本仓库提交桌面端配置、日志、密钥、完整配对链接或其他敏感信息。
-- 产品设计文档、桌面端代码和运行说明统一维护在私有综合仓库，本仓库只保留公开部署所需文件。
+本仓库不应保存：
+
+- Windows 桌面端源码和本机配置；
+- 运行日志；
+- room / key；
+- 完整配对 URL 或二维码；
+- token、密码和其他认证信息。
+
+配对信息由运行时 URL Fragment 提供，不应写死在公开仓库文件中。
+
+## 当前安全注意事项
+
+当前 `index.html` 的正常配对路径使用 Web Crypto / AES-GCM 加密，但代码仍保留“Web Crypto 不可用或密钥导入失败时降级为明文发送”的兼容分支。
+
+因此在该分支被移除之前：
+
+- 页面显示“已安全配对”时才符合当前加密设计；
+- 如果页面提示“明文模式”，不要发送敏感文本；
+- 后续修复目标应是**密钥不可用时拒绝发送**，而不是自动明文降级。
+
+完整安全设计、ACK 语义和修复优先级以私有主项目 README 为准。
+
+## 发布与维护约定
+
+1. `index.html` 保持为可直接部署的静态入口。
+2. `fonts/` 与页面引用路径同步维护，不单独移动字体文件。
+3. 修改正式 H5 时，应同时核对私有主项目中的 `web/index.html` 与本仓库版本，避免两个副本出现逻辑漂移。
+4. 公开仓库只保存部署所需文件；产品设计、桌面端代码、测试和运行说明继续在私有主项目维护。
+5. 发布前至少检查：页面可加载、配对解析正常、加密路径可用、发送状态与 ACK 展示正常、无敏感数据写入源码。
