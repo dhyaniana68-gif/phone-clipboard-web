@@ -1551,6 +1551,52 @@
             .brand-name { font-size: 24px; }
             .hero-copy { font-size: 13px; }
         }
+
+        /* Let long mobile input grow with the page instead of scrolling inside a fixed field. */
+        @media (max-width: 700px) {
+            html, body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            body {
+                min-height: 100dvh;
+            }
+
+            .page {
+                height: auto;
+                min-height: 100dvh;
+                display: block;
+                overflow: visible;
+            }
+
+            .input-group {
+                display: block;
+                min-height: 0;
+            }
+
+            .composer {
+                height: auto;
+                min-height: 0;
+                overflow: visible;
+            }
+
+            textarea {
+                height: auto;
+                min-height: clamp(215px, 42vw, 275px);
+                overflow-y: hidden;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .action-row,
+            .send-note,
+            .privacy-card {
+                flex: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1630,6 +1676,11 @@
         const elSendFeedback = document.getElementById('sendFeedback');
         const elFeedbackIcon = document.getElementById('feedbackIcon');
         const elFeedbackText = document.getElementById('feedbackText');
+        const mobileLayoutQuery = window.matchMedia('(max-width: 700px)');
+
+        function isMobileInputLayout() {
+            return mobileLayoutQuery.matches;
+        }
 
         function base64UrlToArrayBuffer(base64Url) {
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -1763,6 +1814,45 @@
             elBtnSend.disabled = false;
         }
 
+        let inputVisibilityFrame = 0;
+
+        function scheduleInputVisibility() {
+            if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
+            inputVisibilityFrame = requestAnimationFrame(() => {
+                inputVisibilityFrame = 0;
+                if (!isMobileInputLayout() || document.activeElement !== elInput) return;
+
+                const viewport = window.visualViewport;
+                const viewportTop = viewport ? viewport.offsetTop : 0;
+                const viewportBottom = viewportTop + (viewport ? viewport.height : window.innerHeight);
+                const rect = elInput.getBoundingClientRect();
+                const edgePadding = 12;
+                let scrollDelta = 0;
+                if (rect.bottom > viewportBottom - edgePadding) {
+                    scrollDelta = rect.bottom - (viewportBottom - edgePadding);
+                } else if (rect.top < viewportTop + edgePadding) {
+                    scrollDelta = rect.top - (viewportTop + edgePadding);
+                }
+                if (scrollDelta) window.scrollBy({ top: scrollDelta, left: 0, behavior: 'auto' });
+            });
+        }
+
+        function resizeTextInput(keepVisible = false) {
+            if (!isMobileInputLayout()) {
+                // Desktop keeps its grid-sized editor; never let mobile inline height leak into it.
+                elInput.style.removeProperty('height');
+                return;
+            }
+            // Reset first so shrinking after clearing text also works.
+            elInput.style.height = 'auto';
+            elInput.style.height = `${elInput.scrollHeight}px`;
+            if (keepVisible) scheduleInputVisibility();
+        }
+
+        function handleLayoutResize() {
+            resizeTextInput(document.activeElement === elInput);
+        }
+
         async function init() {
             try {
                 const hash = window.location.hash;
@@ -1809,6 +1899,7 @@
                 elCharCount.style.color = 'var(--muted)';
                 elBtnSend.disabled = false;
             }
+            resizeTextInput(true);
         });
 
         elBtnClear.addEventListener('click', () => {
@@ -1816,7 +1907,9 @@
             elCharCount.textContent = '0';
             elCharCount.style.color = 'var(--muted)';
             elBtnSend.disabled = false;
+            resizeTextInput();
             elInput.focus();
+            scheduleInputVisibility();
         });
 
         elBtnSend.addEventListener('click', async () => {
@@ -1879,6 +1972,15 @@
             }
         });
 
+        elInput.addEventListener('focus', scheduleInputVisibility);
+        window.addEventListener('resize', handleLayoutResize);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleInputVisibility);
+        if (typeof mobileLayoutQuery.addEventListener === 'function') {
+            mobileLayoutQuery.addEventListener('change', handleLayoutResize);
+        } else if (typeof mobileLayoutQuery.addListener === 'function') {
+            mobileLayoutQuery.addListener(handleLayoutResize);
+        }
+        resizeTextInput();
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
