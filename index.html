@@ -1807,14 +1807,14 @@
 
         function pinSendAction() {
             if (!isMobileInputLayout() || !elSendAction) return;
-            elSendAction.style.setProperty('--send-slot-height', elSendAction.offsetHeight + 'px');
+            elSendAction.parentElement.style.setProperty('--send-slot-height', elSendAction.offsetHeight + 'px');
             elSendAction.classList.add('is-pinned');
         }
 
         function unpinSendAction() {
             if (!elSendAction) return;
             elSendAction.classList.remove('is-pinned');
-            elSendAction.style.removeProperty('--send-slot-height');
+            elSendAction.parentElement.style.removeProperty('--send-slot-height');
         }
 
         function base64UrlToArrayBuffer(base64Url) {
