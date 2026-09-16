@@ -1785,6 +1785,7 @@
     <script>
         let pairingData = null;
         let cryptoKey = null;
+        let isSecurelyPaired = false;
         const maxBytes = 2048;
 
         const elInput = document.getElementById('textInput');
@@ -1944,9 +1945,17 @@
         }
 
         function enableControls() {
+            isSecurelyPaired = true;
             elInput.disabled = false;
             elBtnClear.disabled = false;
             elBtnSend.disabled = false;
+        }
+
+        function disableControls() {
+            isSecurelyPaired = false;
+            elInput.disabled = true;
+            elBtnClear.disabled = true;
+            elBtnSend.disabled = true;
         }
 
         let inputVisibilityFrame = 0;
@@ -2002,12 +2011,7 @@
                 if (!pairingData.room || !pairingData.key) throw new Error('配对配置项缺失。');
 
                 if (!window.crypto || !window.crypto.subtle) {
-                    console.warn('Web Crypto API 不可用，降级为明文传输');
-                    elStatusBadge.className = 'status-badge connected';
-                    elStatusText.textContent = '已配对（明文模式）';
-                    enableControls();
-                    showToast('由于网络限制，已自动降级为明文传输。', false);
-                    return;
+                    throw new Error('当前浏览器不支持安全加密，请更换浏览器后重新扫码。');
                 }
 
                 const rawKey = base64UrlToArrayBuffer(pairingData.key);
@@ -2018,11 +2022,12 @@
                 showToast('配对成功，现在可以发送文字。');
             } catch (err) {
                 console.error(err);
-                console.warn('密钥导入失败，降级为明文传输');
-                elStatusBadge.className = 'status-badge connected';
-                elStatusText.textContent = '已配对（明文模式）';
-                enableControls();
-                showToast('密钥导入失败，已自动降级为明文模式。', false);
+                pairingData = null;
+                cryptoKey = null;
+                disableControls();
+                elStatusBadge.className = 'status-badge error';
+                elStatusText.textContent = '配对失败';
+                showToast(err instanceof Error ? err.message : '配对失败，请重新扫码。', false);
             }
         }
 
@@ -2032,7 +2037,7 @@
             if (byteLength > maxBytes) {
                 elCharCount.style.color = 'var(--danger)';
                 elBtnSend.disabled = true;
-            } else {
+            } else if (isSecurelyPaired) {
                 elCharCount.style.color = 'var(--muted)';
                 elBtnSend.disabled = false;
             }
@@ -2043,13 +2048,17 @@
             elInput.value = '';
             elCharCount.textContent = '0';
             elCharCount.style.color = 'var(--muted)';
-            elBtnSend.disabled = false;
+            elBtnSend.disabled = !isSecurelyPaired;
             resizeTextInput();
             elInput.focus();
             scheduleInputVisibility();
         });
 
         elBtnSend.addEventListener('click', async () => {
+            if (!isSecurelyPaired || !pairingData || !cryptoKey) {
+                showToast('安全配对尚未建立，请重新扫码。', false);
+                return;
+            }
             const text = elInput.value.trim();
             if (!text) { showToast('请输入有效文本。', false); return; }
             if (getUtf8Length(text) > maxBytes) { showToast('文本超长，无法发送。', false); return; }
@@ -2060,21 +2069,15 @@
             let ackPromise = null;
             const isLanMode = Boolean(pairingData.server);
             try {
-                const messageId = cryptoKey ? arrayBufferToBase64Url(crypto.getRandomValues(new Uint8Array(16))) : `msg_${Math.random().toString(36).substring(2, 15)}`;
+                const messageId = arrayBufferToBase64Url(crypto.getRandomValues(new Uint8Array(16)));
                 const timestamp = Date.now();
                 const payload = { v: 1, type: 'clipboard_text', id: messageId, ts: timestamp };
 
-                if (cryptoKey) {
-                    const iv = crypto.getRandomValues(new Uint8Array(12));
-                    const aadBuffer = new TextEncoder().encode(JSON.stringify({ v: 1, type: 'clipboard_text', id: messageId, ts: timestamp }));
-                    const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aadBuffer, tagLength: 128 }, cryptoKey, new TextEncoder().encode(text));
-                    payload.iv = arrayBufferToBase64Url(iv);
-                    payload.ciphertext = arrayBufferToBase64Url(encryptedBuffer);
-                } else {
-                    payload.iv = '';
-                    payload.ciphertext = '';
-                    payload.plaintext = text;
-                }
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const aadBuffer = new TextEncoder().encode(JSON.stringify({ v: 1, type: 'clipboard_text', id: messageId, ts: timestamp }));
+                const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: aadBuffer, tagLength: 128 }, cryptoKey, new TextEncoder().encode(text));
+                payload.iv = arrayBufferToBase64Url(iv);
+                payload.ciphertext = arrayBufferToBase64Url(encryptedBuffer);
 
                 // 局域网二维码显式提供 server；其他所有公网托管域名都使用 ntfy。
                 const publishUrl = pairingData.server || `https://ntfy.sh/${encodeURIComponent(pairingData.room)}`;
@@ -2104,7 +2107,7 @@
                 showToast(`中转失败：${err.message}`, false);
                 showSendFeedback('relay_failed');
             } finally {
-                elBtnSend.disabled = false;
+                elBtnSend.disabled = !isSecurelyPaired || getUtf8Length(elInput.value) > maxBytes;
                 elSendLabel.textContent = '发送到电脑';
                 if (document.activeElement !== elInput) unpinSendAction();
             }
