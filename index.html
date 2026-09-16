@@ -254,84 +254,9 @@
 
         .input-group { position: relative; }
 
-        .action-row {
-            display: grid;
-            grid-template-columns: 82px minmax(0, 1fr);
-            align-items: center;
-            gap: 21px;
-            margin-top: 30px;
-        }
-
         button { font-family: inherit; -webkit-tap-highlight-color: transparent; }
 
-        .btn-clear {
-            display: grid;
-            place-items: center;
-            gap: 7px;
-            width: 82px;
-            padding: 0;
-            border: 0;
-            color: #607077;
-            font-size: 13px;
-            font-weight: 600;
-            background: transparent;
-            cursor: pointer;
-        }
-
-        .clear-disc {
-            display: grid;
-            place-items: center;
-            width: 62px;
-            height: 62px;
-            border: 1px solid rgba(255,255,255,.9);
-            border-radius: 50%;
-            background: rgba(255,255,255,.52);
-            box-shadow: 0 8px 19px rgba(48, 111, 127, .12), inset 0 1px #fff;
-            transition: transform .2s ease, box-shadow .2s ease;
-        }
-
-        .btn-clear:hover .clear-disc, .btn-clear:focus-visible .clear-disc { transform: translateY(-2px); box-shadow: 0 12px 23px rgba(48,111,127,.16), inset 0 1px #fff; }
-        .btn-clear:disabled { color: #abb8bb; cursor: not-allowed; }
-        .btn-clear:disabled .clear-disc { opacity: .55; }
-
-        .btn-send {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 68px;
-            padding: 7px 8px 7px 26px;
-            border: 1px solid rgba(139, 224, 231, .9);
-            border-radius: 999px;
-            color: #31444b;
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: .02em;
-            background: linear-gradient(102deg, rgba(255,255,255,.72), rgba(220,246,248,.8));
-            box-shadow: 0 11px 25px rgba(44, 159, 177, .17), inset 0 1px rgba(255,255,255,.96);
-            cursor: pointer;
-            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
-        }
-
         .send-label { flex: 1; text-align: center; }
-
-        .send-disc {
-            display: grid;
-            place-items: center;
-            flex: 0 0 auto;
-            width: 54px;
-            height: 54px;
-            margin-left: 14px;
-            border-radius: 50%;
-            color: #277b86;
-            background: radial-gradient(circle at 34% 25%, #fff, #d7f8fa 48%, #a4e6ec 100%);
-            box-shadow: 0 4px 12px rgba(48,166,180,.23), inset 0 1px #fff;
-        }
-
-        .btn-send:hover:not(:disabled), .btn-send:focus-visible:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 31px rgba(44,159,177,.24), inset 0 1px #fff; }
-        .btn-send:active:not(:disabled) { transform: translateY(0); }
-        .btn-send:disabled { opacity: .54; cursor: not-allowed; }
-
-        .send-note { margin: 10px 0 0 103px; color: #7a898e; font-size: 12px; text-align: center; }
 
         .privacy-card {
             margin-top: clamp(45px, 9vw, 70px);
@@ -522,11 +447,6 @@
             .brand { font-size: 15px; }
             .status-badge { padding: 8px 10px; font-size: 12px; }
             .hero { padding-top: 62px; }
-            .action-row { grid-template-columns: 69px minmax(0, 1fr); gap: 12px; }
-            .btn-clear { width: 69px; }
-            .send-note { margin-left: 81px; }
-            .btn-send { padding-left: 15px; font-size: 18px; }
-            .send-disc { width: 49px; height: 49px; margin-left: 8px; }
         }
 
         /* Mobile single-screen composition: keep every control inside the visible viewport. */
@@ -636,45 +556,6 @@
 
         .char-counter { right: 20px; bottom: 15px; z-index: 3; font-size: 12px; }
 
-        .action-row {
-            grid-template-columns: 62px minmax(0, 1fr);
-            gap: 14px;
-            height: 58px;
-            margin-top: 13px;
-        }
-
-        .btn-clear { width: 62px; gap: 2px; font-size: 11px; }
-        .clear-disc { width: 48px; height: 48px; color: #49818d; background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(211,244,246,.52)); box-shadow: 0 8px 18px rgba(42,152,168,.18), inset 0 2px 2px #fff, inset 0 -7px 12px rgba(85,194,206,.14); }
-
-        .btn-send {
-            min-height: 54px;
-            padding: 5px 6px 5px 20px;
-            border-color: rgba(126, 230, 237, .95);
-            color: #27626d;
-            font-size: 22px;
-            letter-spacing: .08em;
-            background: linear-gradient(112deg, rgba(255,255,255,.88), rgba(205,246,248,.73) 60%, rgba(142,226,234,.55));
-            box-shadow: 0 11px 24px rgba(30,155,173,.22), 0 0 0 3px rgba(202,249,251,.23), inset 0 2px 2px rgba(255,255,255,.98), inset 0 -10px 17px rgba(86,204,216,.12);
-            backdrop-filter: blur(16px) saturate(125%);
-            -webkit-backdrop-filter: blur(16px) saturate(125%);
-        }
-
-        .send-disc {
-            position: relative;
-            width: 44px;
-            height: 44px;
-            margin-left: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,.93);
-            color: #177989;
-            background: radial-gradient(circle at 30% 22%, #fff 0 7%, rgba(236,254,255,.94) 23%, rgba(151,231,238,.62) 70%, rgba(84,196,210,.72) 100%);
-            box-shadow: 0 5px 13px rgba(28,157,176,.28), inset 0 2px 2px #fff, inset 0 -7px 10px rgba(38,166,181,.22);
-        }
-        .send-disc::after { position: absolute; top: 4px; left: 8px; width: 23px; height: 10px; content: ''; border-radius: 50%; background: rgba(255,255,255,.63); filter: blur(2px); }
-        .send-disc svg { position: relative; z-index: 1; }
-
-        .send-note { margin: 3px 0 0 76px; font-size: 10px; }
-
         .privacy-card {
             min-height: 0;
             margin-top: 9px;
@@ -697,8 +578,6 @@
             .hero-copy { display: none; }
             .trust-line { margin-top: 8px; }
             h1 { font-size: clamp(33px, 8.5vw, 43px); }
-            .action-row { height: 51px; margin-top: 9px; }
-            .btn-send { min-height: 49px; }
             .privacy-card { margin-top: 6px; padding-top: 7px; padding-bottom: 7px; }
             .privacy-heading p { display: none; }
         }
@@ -754,66 +633,10 @@
 
         .char-counter { right: 27px; bottom: 18px; }
 
-        .action-row {
-            grid-template-columns: 70px minmax(0, 1fr);
-            gap: 16px;
-            height: 66px;
-            margin-top: 14px;
-        }
-
-        .btn-clear { width: 70px; gap: 4px; font-size: 12px; color: #51676d; }
-        .clear-disc {
-            width: 56px;
-            height: 56px;
-            border: 1.5px solid rgba(255,255,255,.95);
-            color: #394d53;
-            background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.99), rgba(237,248,249,.82) 52%, rgba(184,230,234,.48) 100%);
-            box-shadow: 0 10px 22px rgba(42,152,168,.19), inset 0 2px 3px #fff, inset 0 -9px 15px rgba(85,194,206,.13);
-        }
-
-        .btn-send {
-            min-height: 62px;
-            padding: 6px 2px 6px 24px;
-            border: 1.5px solid rgba(135, 222, 231, .9);
-            border-radius: 999px;
-            color: #334a50;
-            font-family: 'Noto Sans SC', 'DM Sans', sans-serif;
-            font-size: 19px;
-            font-weight: 700;
-            letter-spacing: .035em;
-            background:
-                linear-gradient(90deg, rgba(255,255,255,.68) 0%, rgba(255,255,255,.9) 29%, rgba(204,245,247,.73) 72%, rgba(144,224,232,.62) 100%);
-            box-shadow:
-                0 12px 26px rgba(30,155,173,.23),
-                0 0 0 4px rgba(203,249,251,.26),
-                inset 0 2px 2px rgba(255,255,255,.99),
-                inset 0 -11px 18px rgba(86,204,216,.13);
-        }
-
         .send-label { font-family: inherit; letter-spacing: inherit; }
-
-        .send-disc {
-            width: 64px;
-            height: 64px;
-            margin: -2px -7px -2px 9px;
-            border: 2px solid rgba(255,255,255,.93);
-            color: #207e8d;
-            background:
-                radial-gradient(circle at 31% 23%, #fff 0 8%, rgba(238,254,255,.95) 23%, rgba(173,238,243,.68) 62%, rgba(87,197,210,.77) 100%);
-            box-shadow: 0 7px 16px rgba(28,157,176,.3), inset 0 3px 3px #fff, inset 0 -10px 13px rgba(38,166,181,.24);
-        }
-        .send-disc::after { top: 6px; left: 11px; width: 32px; height: 12px; opacity: .84; }
-        .send-disc svg { width: 30px; height: 30px; }
-
-        .send-note { margin: 4px 0 0 86px; font-size: 10px; }
 
         @media (max-width: 370px) {
             .page { padding-right: 17px; padding-left: 17px; }
-            .action-row { grid-template-columns: 63px minmax(0, 1fr); gap: 9px; }
-            .btn-clear { width: 63px; }
-            .btn-send { padding-left: 13px; font-size: 17px; }
-            .send-disc { width: 58px; height: 58px; margin-right: -6px; }
-            .send-note { margin-left: 72px; }
         }
 
         /* Reserve a protected footer inside the textarea so long text never meets the counter. */
@@ -843,13 +666,6 @@
         .input-group:focus-within .char-counter {
             border-color: rgba(112, 218, 227, .84);
             box-shadow: 0 5px 14px rgba(36, 171, 185, .19), inset 0 1px rgba(255,255,255,.94);
-        }
-
-        /* Final visual tuning: asymmetric liquid-glass field and a restrained display typeface. */
-        h1, .brand-name, .send-label, .btn-clear > span:last-child, .privacy-heading strong, textarea::placeholder {
-            font-family: 'Smiley Display', 'Noto Sans SC', sans-serif;
-            font-style: normal;
-            font-weight: 400;
         }
 
         .brand-name { font-size: 21px; letter-spacing: .03em; }
@@ -886,18 +702,9 @@
             background: radial-gradient(ellipse at 40% 42%, rgba(255,255,255,.97) 0 13%, rgba(255,255,255,.39) 47%, rgba(255,255,255,0) 72%);
         }
 
-        .send-note {
-            min-height: 15px;
-            margin-top: 20px;
-            color: #6f858b;
-            font-size: 11px;
-            line-height: 1.35;
-        }
-
         .privacy-card { margin-top: 17px; }
 
         @media (max-height: 680px) {
-            .send-note { min-height: 12px; margin-top: 12px; font-size: 9px; }
             .privacy-card { margin-top: 10px; }
         }
 
@@ -1044,71 +851,6 @@
             -webkit-backdrop-filter: blur(8px) saturate(120%);
         }
 
-        .clear-disc, .send-disc {
-            position: relative;
-            overflow: hidden;
-            border-color: rgba(255,255,255,.97);
-            background:
-                radial-gradient(ellipse 44% 23% at 31% 18%, rgba(255,255,255,1) 0%, rgba(255,255,255,.68) 55%, transparent 100%),
-                radial-gradient(circle at 75% 82%, rgba(86, 211, 222, .7) 0%, rgba(159,234,239,.42) 35%, rgba(248,255,255,.78) 75%);
-            box-shadow:
-                0 12px 24px rgba(18, 139, 160, .25),
-                0 0 0 2px rgba(201, 248, 250, .32),
-                inset 2px 3px 4px rgba(255,255,255,1),
-                inset -9px -12px 16px rgba(37, 168, 185, .24);
-            backdrop-filter: blur(16px) saturate(140%);
-            -webkit-backdrop-filter: blur(16px) saturate(140%);
-        }
-
-        .clear-disc::before, .send-disc::before {
-            position: absolute;
-            top: 6%;
-            left: 15%;
-            width: 63%;
-            height: 29%;
-            content: '';
-            border-radius: 50%;
-            background: rgba(255,255,255,.72);
-            filter: blur(3px);
-        }
-
-        .clear-disc svg, .send-disc svg { position: relative; z-index: 2; }
-
-        .btn-send {
-            position: relative;
-            isolation: isolate;
-            overflow: hidden;
-            border-color: rgba(255,255,255,.95);
-            background:
-                radial-gradient(ellipse 48% 130% at 86% 80%, rgba(80,211,222,.58) 0%, rgba(180,240,244,.24) 45%, transparent 72%),
-                linear-gradient(102deg, rgba(255,255,255,.87) 0%, rgba(242,254,254,.6) 42%, rgba(156,229,235,.47) 100%);
-            box-shadow:
-                0 15px 28px rgba(20, 143, 164, .25),
-                0 0 0 2px rgba(107, 219, 230, .4),
-                0 0 0 6px rgba(211, 252, 253, .24),
-                inset 2px 3px 4px rgba(255,255,255,1),
-                inset -12px -10px 19px rgba(39, 171, 187, .2);
-            backdrop-filter: blur(18px) saturate(145%);
-            -webkit-backdrop-filter: blur(18px) saturate(145%);
-        }
-
-        .btn-send::before {
-            position: absolute;
-            z-index: 0;
-            top: 8%;
-            left: 12%;
-            width: 58%;
-            height: 35%;
-            content: '';
-            border-radius: 50%;
-            opacity: .86;
-            background: linear-gradient(100deg, rgba(255,255,255,.93), rgba(255,255,255,.18));
-            filter: blur(5px);
-            pointer-events: none;
-        }
-
-        .btn-send > span { position: relative; z-index: 1; }
-
         /* The page itself is a softly refracted glass field, not a flat colour wash. */
         body {
             background:
@@ -1199,26 +941,6 @@
             -webkit-backdrop-filter: none;
         }
 
-        .clear-disc, .send-disc {
-            border: 2px solid transparent;
-            background:
-                radial-gradient(ellipse 46% 25% at 31% 19%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.2) 60%, transparent 100%) padding-box,
-                linear-gradient(135deg, rgba(255,255,255,.98), rgba(81,202,218,.84) 25%, rgba(255,255,255,.74) 56%, rgba(63,186,205,.82) 78%, rgba(255,255,255,.95)) border-box;
-            box-shadow: 0 14px 25px rgba(13,127,151,.28), inset 2px 2px 3px rgba(255,255,255,.92), inset -9px -11px 15px rgba(37,161,181,.23);
-            backdrop-filter: blur(20px) saturate(155%);
-            -webkit-backdrop-filter: blur(20px) saturate(155%);
-        }
-
-        .btn-send {
-            border: 2px solid transparent;
-            background:
-                linear-gradient(105deg, rgba(255,255,255,.26), rgba(222,248,250,.12) 48%, rgba(76,203,218,.23) 100%) padding-box,
-                linear-gradient(102deg, rgba(255,255,255,.98) 0%, rgba(100,213,226,.88) 19%, rgba(255,255,255,.78) 49%, rgba(74,194,211,.83) 80%, rgba(255,255,255,.96) 100%) border-box;
-            box-shadow: 0 17px 30px rgba(12,128,151,.28), inset 2px 2px 3px rgba(255,255,255,.94), inset -13px -12px 19px rgba(28,165,183,.2);
-            backdrop-filter: blur(22px) saturate(160%);
-            -webkit-backdrop-filter: blur(22px) saturate(160%);
-        }
-
         /* Send feedback now uses the same thick, refractive material as the controls. */
         .feedback-card {
             position: relative;
@@ -1303,26 +1025,6 @@
             background: radial-gradient(ellipse at 38% 39%, rgba(255,255,255,.88) 0 11%, rgba(255,255,255,.22) 42%, rgba(255,255,255,0) 73%);
         }
 
-        .clear-disc, .send-disc {
-            border: 3px solid transparent;
-            background:
-                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.83), rgba(255,255,255,.1) 66%, transparent 100%) padding-box,
-                conic-gradient(from 215deg at 68% 70%, rgba(84,201,218,.86), rgba(255,255,255,.98), rgba(171,230,237,.88), rgba(255,255,255,.97), rgba(58,183,204,.82), rgba(255,255,255,.98), rgba(84,201,218,.86)) border-box;
-            box-shadow: 0 12px 22px rgba(50,102,117,.22), -3px 5px 9px rgba(60,108,120,.13), inset 3px 3px 5px rgba(255,255,255,.94), inset -7px -9px 13px rgba(67,179,195,.15);
-            backdrop-filter: blur(22px) saturate(125%);
-            -webkit-backdrop-filter: blur(22px) saturate(125%);
-        }
-
-        .btn-send {
-            border: 3px solid transparent;
-            background:
-                linear-gradient(104deg, rgba(255,255,255,.23), rgba(255,255,255,.08) 51%, rgba(219,247,249,.16)) padding-box,
-                conic-gradient(from 210deg at 74% 69%, rgba(74,196,214,.9), rgba(255,255,255,.98), rgba(164,228,235,.9), rgba(255,255,255,.98), rgba(65,184,204,.88), rgba(255,255,255,.98), rgba(74,196,214,.9)) border-box;
-            box-shadow: 0 14px 25px rgba(43,98,112,.22), -5px 5px 10px rgba(49,104,117,.12), inset 3px 3px 5px rgba(255,255,255,.95), inset -10px -10px 15px rgba(65,180,196,.13);
-            backdrop-filter: blur(24px) saturate(128%);
-            -webkit-backdrop-filter: blur(24px) saturate(128%);
-        }
-
         .privacy-card {
             position: relative;
             isolation: isolate;
@@ -1370,18 +1072,6 @@
                 linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(112,215,229,.78) 13%, rgba(255,255,255,.96) 29%, rgba(198,238,242,.82) 51%, rgba(255,255,255,.97) 73%, rgba(76,192,211,.82) 96%, rgba(255,255,255,.98) 100%) border-box;
         }
 
-        .clear-disc, .send-disc {
-            background:
-                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.83), rgba(255,255,255,.1) 66%, transparent 100%) padding-box,
-                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(91,203,219,.77) 17%, rgba(255,255,255,.96) 43%, rgba(143,220,230,.75) 68%, rgba(255,255,255,.98) 100%) border-box;
-        }
-
-        .btn-send {
-            background:
-                linear-gradient(104deg, rgba(255,255,255,.23), rgba(255,255,255,.08) 51%, rgba(219,247,249,.16)) padding-box,
-                linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(84,202,219,.78) 15%, rgba(255,255,255,.96) 36%, rgba(175,230,236,.74) 62%, rgba(255,255,255,.98) 79%, rgba(71,188,207,.8) 100%) border-box;
-        }
-
         .privacy-card {
             background:
                 linear-gradient(132deg, rgba(255,255,255,.26), rgba(237,251,251,.12) 58%, rgba(179,232,235,.19)) padding-box,
@@ -1405,24 +1095,6 @@
         }
 
         .composer::before { opacity: .26; }
-
-        .clear-disc, .send-disc {
-            background:
-                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.72), rgba(255,255,255,.04) 66%, transparent 100%) padding-box,
-                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(190,227,233,.66) 17%, rgba(255,255,255,.96) 43%, rgba(203,235,239,.64) 68%, rgba(255,255,255,.98) 100%) border-box;
-            box-shadow: 0 12px 22px rgba(50,102,117,.18), -3px 5px 9px rgba(60,108,120,.1), inset 3px 3px 5px rgba(255,255,255,.85), inset -7px -9px 13px rgba(67,179,195,.08);
-            backdrop-filter: blur(10px) saturate(106%);
-            -webkit-backdrop-filter: blur(10px) saturate(106%);
-        }
-
-        .btn-send {
-            background:
-                linear-gradient(104deg, rgba(255,255,255,.14), rgba(255,255,255,.035) 51%, rgba(255,255,255,.1)) padding-box,
-                linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(188,226,232,.67) 15%, rgba(255,255,255,.96) 36%, rgba(208,238,241,.63) 62%, rgba(255,255,255,.98) 79%, rgba(105,202,214,.68) 100%) border-box;
-            box-shadow: 0 14px 25px rgba(43,98,112,.18), -5px 5px 10px rgba(49,104,117,.09), inset 3px 3px 5px rgba(255,255,255,.86), inset -10px -10px 15px rgba(65,180,196,.07);
-            backdrop-filter: blur(10px) saturate(106%);
-            -webkit-backdrop-filter: blur(10px) saturate(106%);
-        }
 
         .privacy-card {
             background:
@@ -1483,24 +1155,6 @@
             border-radius: 56px 136px 66px 67px / 63px 87px 77px 72px;
             background: linear-gradient(138deg, rgba(255,255,255,.08), rgba(255,255,255,.015));
             box-shadow: inset 1px 1px 1px rgba(255,255,255,.62), inset -4px -5px 10px rgba(124,164,170,.045);
-        }
-
-        .btn-send {
-            border: 4px solid transparent;
-            background:
-                linear-gradient(106deg, rgba(255,255,255,.16), rgba(255,255,255,.025) 56%, rgba(255,255,255,.11)) padding-box,
-                linear-gradient(105deg, rgba(255,255,255,.99) 0%, rgba(102,124,129,.42) 10%, rgba(255,255,255,.97) 20%, rgba(163,207,214,.72) 39%, rgba(255,255,255,.98) 63%, rgba(107,140,146,.46) 90%, rgba(255,255,255,.99) 100%) border-box;
-            box-shadow: 6px 10px 20px rgba(43,59,62,.23), -4px 5px 11px rgba(92,115,119,.12), 0 0 0 1px rgba(85,105,109,.35), inset 2px 2px 0 rgba(255,255,255,.96), inset -3px -3px 0 rgba(93,131,138,.18);
-            backdrop-filter: blur(5px) saturate(104%);
-            -webkit-backdrop-filter: blur(5px) saturate(104%);
-        }
-
-        .clear-disc, .send-disc {
-            border: 4px solid transparent;
-            background:
-                radial-gradient(ellipse at 34% 24%, rgba(255,255,255,.56), rgba(255,255,255,.04) 63%, transparent 76%) padding-box,
-                linear-gradient(135deg, rgba(255,255,255,.99) 0%, rgba(102,125,130,.43) 12%, rgba(255,255,255,.98) 25%, rgba(161,207,214,.7) 46%, rgba(255,255,255,.98) 69%, rgba(97,128,135,.43) 91%, rgba(255,255,255,.99) 100%) border-box;
-            box-shadow: 5px 9px 16px rgba(44,58,62,.23), -3px 4px 8px rgba(96,118,122,.12), 0 0 0 1px rgba(87,106,110,.34), inset 2px 2px 0 rgba(255,255,255,.96), inset -3px -4px 0 rgba(88,127,135,.17);
         }
 
         .privacy-card {
@@ -1590,14 +1244,460 @@
                 scrollbar-width: none;
                 -ms-overflow-style: none;
             }
+        }
+    
 
-            .action-row,
-            .send-note,
+        /* Final composition: primary send action above the editor, secondary clear below. */
+        .page {
+            grid-template-rows: auto auto auto minmax(215px, 1fr) auto auto auto;
+        }
+
+        .send-action,
+        .input-group,
+        .clear-action,
+        .send-note,
+        .privacy-card {
+            min-width: 0;
+        }
+
+        .send-action {
+            margin: 0;
+        }
+
+        .input-group {
+            position: relative;
+            min-height: 0;
+        }
+
+        .composer {
+            height: 100%;
+            margin: 0;
+        }
+
+        textarea {
+            width: calc(100% - 6px);
+            height: calc(100% - 6px);
+            margin: 3px;
+        }
+
+        .send-action .btn-send {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 66px;
+            padding: 6px 10px 6px 26px;
+            border: 2px solid transparent;
+            border-radius: 999px;
+            color: #334a50;
+            font-family: 'Noto Sans SC', 'DM Sans', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: .035em;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+            background:
+                linear-gradient(104deg, rgba(255,255,255,.2), rgba(255,255,255,.075) 51%, rgba(219,247,249,.16)) padding-box,
+                linear-gradient(105deg, rgba(255,255,255,.98) 0%, rgba(112,215,229,.78) 15%, rgba(255,255,255,.96) 36%, rgba(174,230,236,.74) 62%, rgba(255,255,255,.98) 79%, rgba(72,190,208,.8) 100%) border-box;
+            box-shadow:
+                0 15px 28px rgba(20,143,164,.2),
+                0 0 0 4px rgba(199,247,249,.24),
+                inset 3px 3px 5px rgba(255,255,255,.95),
+                inset -11px -10px 17px rgba(39,171,187,.14);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+        }
+
+        .send-action .btn-send::before {
+            position: absolute;
+            z-index: 0;
+            top: 8%;
+            left: 12%;
+            width: 58%;
+            height: 35%;
+            content: '';
+            border-radius: 50%;
+            opacity: .78;
+            background: linear-gradient(100deg, rgba(255,255,255,.93), rgba(255,255,255,.12));
+            filter: blur(5px);
+            pointer-events: none;
+        }
+
+        .send-action .btn-send > span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .send-label {
+            flex: 1 1 auto;
+            text-align: center;
+            font-family: inherit;
+            letter-spacing: inherit;
+        }
+
+        .send-disc {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 54px;
+            height: 54px;
+            margin: -2px -4px -2px 10px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            color: #207e8d;
+            background:
+                radial-gradient(ellipse 48% 26% at 30% 17%, rgba(255,255,255,.82), rgba(255,255,255,.1) 66%, transparent 100%) padding-box,
+                linear-gradient(136deg, rgba(255,255,255,.98) 0%, rgba(91,203,219,.77) 17%, rgba(255,255,255,.96) 43%, rgba(143,220,230,.75) 68%, rgba(255,255,255,.98) 100%) border-box;
+            box-shadow:
+                0 10px 19px rgba(22,129,149,.22),
+                inset 2px 2px 3px rgba(255,255,255,.95),
+                inset -7px -8px 12px rgba(55,175,191,.15);
+        }
+
+        .send-disc::before {
+            position: absolute;
+            top: 7%;
+            left: 15%;
+            width: 63%;
+            height: 28%;
+            content: '';
+            border-radius: 50%;
+            background: rgba(255,255,255,.7);
+            filter: blur(3px);
+            pointer-events: none;
+        }
+
+        .send-disc svg {
+            position: relative;
+            z-index: 2;
+            width: 28px;
+            height: 28px;
+        }
+
+        .send-action .btn-send:hover:not(:disabled),
+        .send-action .btn-send:focus-visible:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow:
+                0 18px 32px rgba(20,143,164,.26),
+                0 0 0 4px rgba(199,247,249,.3),
+                inset 3px 3px 5px rgba(255,255,255,.95),
+                inset -11px -10px 17px rgba(39,171,187,.14);
+        }
+
+        .send-action .btn-send:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .send-action .btn-send:disabled {
+            opacity: .58;
+            cursor: not-allowed;
+        }
+
+        .clear-action {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 14px;
+        }
+
+        .btn-clear {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+            width: auto;
+            padding: 6px 14px 6px 9px;
+            border: 1px solid rgba(255,255,255,.9);
+            border-radius: 999px;
+            color: #66818a;
+            font-size: 12px;
+            font-weight: 600;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.5), rgba(226,247,248,.2));
+            box-shadow:
+                0 7px 15px rgba(40,104,117,.1),
+                inset 1px 1px 2px rgba(255,255,255,.9);
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .clear-disc {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            border: 0;
+            border-radius: 50%;
+            color: #5b8791;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .clear-disc svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-clear:hover:not(:disabled),
+        .btn-clear:focus-visible:not(:disabled) {
+            color: #3e737e;
+            transform: translateY(-1px);
+            box-shadow:
+                0 10px 18px rgba(40,104,117,.14),
+                inset 1px 1px 2px rgba(255,255,255,.96);
+        }
+
+        .btn-clear:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-clear:disabled {
+            color: #aab9bc;
+            cursor: not-allowed;
+            opacity: .62;
+        }
+
+        .send-note {
+            margin: 8px 0 0;
+            padding: 0 4px;
+            color: #71878d;
+            font-size: 11px;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            html,
+            body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            body {
+                min-height: 100dvh;
+            }
+
+            .page {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: auto;
+                min-height: 100dvh;
+                max-width: 620px;
+                padding: max(12px, env(safe-area-inset-top)) clamp(14px, 4.8vw, 22px) max(18px, env(safe-area-inset-bottom));
+                overflow: visible;
+            }
+
+            .topbar {
+                flex: 0 0 auto;
+                min-height: 40px;
+            }
+
+            .brand-name {
+                font-size: 20px;
+            }
+
+            .status-badge {
+                padding: 7px 10px;
+                font-size: 11px;
+            }
+
+            .hero {
+                flex: 0 0 auto;
+                padding: clamp(17px, 4.2vh, 30px) 0 13px;
+            }
+
+            .eyebrow {
+                margin-bottom: 8px;
+                font-size: 10px;
+            }
+
+            h1 {
+                max-width: none;
+                font-size: clamp(42px, 12vw, 58px);
+                line-height: 1.04;
+                letter-spacing: .045em;
+            }
+
+            .hero-copy {
+                margin-top: 9px;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .trust-line {
+                gap: 8px;
+                margin-top: 10px;
+                font-size: 12px;
+            }
+
+            .trust-icon {
+                width: 30px;
+                height: 30px;
+                padding: 7px;
+            }
+
+            .send-action {
+                position: sticky;
+                top: max(6px, env(safe-area-inset-top));
+                z-index: 8;
+                flex: 0 0 auto;
+                margin: -3px -2px 0;
+                padding: 4px 2px 12px;
+                background: linear-gradient(180deg, rgba(247,252,252,.96) 0%, rgba(247,252,252,.78) 68%, rgba(247,252,252,0) 100%);
+                -webkit-backdrop-filter: blur(10px);
+                backdrop-filter: blur(10px);
+            }
+
+            .send-action .btn-send {
+                min-height: 58px;
+                padding: 5px 8px 5px 16px;
+                font-size: 18px;
+                letter-spacing: .04em;
+            }
+
+            .send-disc {
+                width: 47px;
+                height: 47px;
+                margin: -2px -3px -2px 8px;
+            }
+
+            .send-disc svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .input-group {
+                flex: 0 0 auto;
+                min-height: 0;
+            }
+
+            .composer {
+                height: auto;
+                min-height: 0;
+                overflow: visible;
+            }
+
+            textarea {
+                height: auto;
+                min-height: clamp(156px, 32svh, 240px);
+                max-height: min(42svh, 320px);
+                overflow-y: auto;
+                scroll-padding-bottom: 76px;
+            }
+
+            .clear-action {
+                flex: 0 0 auto;
+                margin-top: 12px;
+            }
+
+            .btn-clear {
+                min-height: 34px;
+                padding: 5px 13px 5px 8px;
+                font-size: 11px;
+            }
+
             .privacy-card {
-                flex: none;
+                flex: 0 0 auto;
+                margin-top: 16px;
             }
         }
-    </style>
+
+        @media (max-width: 390px) {
+            .page {
+                padding-right: 14px;
+                padding-left: 14px;
+            }
+
+            .brand-name {
+                font-size: 18px;
+                letter-spacing: .045em;
+            }
+
+            .status-badge {
+                padding-right: 8px;
+                padding-left: 8px;
+                font-size: 10px;
+            }
+
+            .send-action .btn-send {
+                min-height: 55px;
+                padding-left: 13px;
+                font-size: 17px;
+            }
+
+            .send-disc {
+                width: 44px;
+                height: 44px;
+                margin-left: 6px;
+            }
+
+            .clear-action {
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-height: 680px) and (max-width: 700px) {
+            .page {
+                padding-top: max(8px, env(safe-area-inset-top));
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+
+            .hero {
+                padding-top: 12px;
+                padding-bottom: 10px;
+            }
+
+            .hero-copy {
+                display: none;
+            }
+
+            h1 {
+                font-size: clamp(38px, 10.5vw, 50px);
+            }
+
+            .trust-line {
+                margin-top: 7px;
+            }
+
+            .send-action {
+                padding-bottom: 9px;
+            }
+
+            .send-action .btn-send {
+                min-height: 52px;
+            }
+
+            .send-disc {
+                width: 42px;
+                height: 42px;
+            }
+
+            .privacy-card {
+                margin-top: 12px;
+                padding-top: 9px;
+                padding-bottom: 9px;
+            }
+
+            .privacy-heading p {
+                display: none;
+            }
+        }
+
+        @media (min-width: 701px) {
+            .send-action .btn-send {
+                max-width: 100%;
+            }
+
+            .clear-action {
+                margin-top: 14px;
+            }
+        }
+</style>
 </head>
 <body>
     <main class="page">
@@ -1623,6 +1723,13 @@
             </div>
         </section>
 
+        <section class="send-action" aria-label="发送操作">
+            <button id="btnSend" class="btn-send" type="button" disabled>
+                <span id="sendLabel" class="send-label">发送到电脑</span>
+                <span class="send-disc"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.3 18-3.4-7.6L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m10.4 13.4 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            </button>
+        </section>
+
         <section class="input-group" aria-label="发送文本">
             <div class="composer">
                 <textarea id="textInput" placeholder="输入或粘贴要发送到电脑的文字" disabled></textarea>
@@ -1630,16 +1737,13 @@
             <div class="char-counter"><span id="charCount">0</span> / 2048</div>
         </section>
 
-        <section class="action-row" aria-label="发送操作">
+        <div class="clear-action" aria-label="编辑操作">
             <button id="btnClear" class="btn-clear" type="button" disabled>
                 <span class="clear-disc"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.8 3.8 5.4 5.4a2.2 2.2 0 0 1 0 3.1l-7.7 7.7a2.2 2.2 0 0 1-3.1 0L3.8 14.4a2.2 2.2 0 0 1 0-3.1l7.7-7.5a2.2 2.2 0 0 1 3.3 0Z" stroke="currentColor" stroke-width="1.7"/><path d="m8.2 7.2 8.6 8.6" stroke="currentColor" stroke-width="1.7"/></svg></span>
                 <span>清空</span>
             </button>
-            <button id="btnSend" class="btn-send" type="button" disabled>
-                <span id="sendLabel" class="send-label">发送到电脑</span>
-                <span class="send-disc"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.3 18-3.4-7.6L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m10.4 13.4 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            </button>
-        </section>
+        </div>
+
         <p class="send-note">发送后自动写入 Windows 剪贴板</p>
 
         <aside class="privacy-card">
