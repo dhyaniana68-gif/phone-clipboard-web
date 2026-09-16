@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mobile layout QA</title>
+  <style>
+    html, body { margin: 0; min-height: 100%; background: #eef6f7; }
+    iframe { display: block; width: 390px; height: 360px; border: 0; }
+  </style>
+</head>
+<body>
+  <iframe id="mobileHarness" title="Phone Clipboard Web mobile QA"></iframe>
+  <script>
+    const pairing = { room: 'codex-ui-test', key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' };
+    const encoded = btoa(JSON.stringify(pairing)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    document.getElementById('mobileHarness').src = './#v1=' + encoded;
+  </script>
+</body>
+</html>
