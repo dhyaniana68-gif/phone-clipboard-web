@@ -1469,16 +1469,18 @@
         }
 
         @media (max-width: 700px) {
-            html,
-            body {
+            html {
                 height: auto;
                 min-height: 100%;
                 overflow-x: hidden;
-                overflow-y: auto;
+                overflow-y: visible;
             }
 
             body {
+                height: auto;
                 min-height: 100dvh;
+                overflow-x: hidden;
+                overflow-y: auto;
             }
 
             .page {
