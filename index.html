@@ -1554,23 +1554,6 @@
                 backdrop-filter: blur(10px);
             }
 
-            /* Keep the primary action reachable while the focused editor is auto-scrolled. */
-            .send-action.is-pinned {
-                position: fixed;
-                z-index: 30;
-                top: max(6px, env(safe-area-inset-top));
-                left: max(var(--page-gutter), calc((100vw - 620px) / 2 + var(--page-gutter)));
-                right: max(var(--page-gutter), calc((100vw - 620px) / 2 + var(--page-gutter)));
-                width: auto;
-                margin: 0;
-                padding: 4px 2px 12px;
-                background: linear-gradient(180deg, rgba(247,252,252,.98) 0%, rgba(247,252,252,.84) 68%, rgba(247,252,252,0) 100%);
-            }
-
-            .send-action.is-pinned + .input-group {
-                margin-top: var(--send-slot-height, 0px);
-            }
-
             .send-action .btn-send {
                 min-height: 58px;
                 padding: 5px 8px 5px 16px;
@@ -1791,7 +1774,6 @@
         const elInput = document.getElementById('textInput');
         const elBtnClear = document.getElementById('btnClear');
         const elBtnSend = document.getElementById('btnSend');
-        const elSendAction = document.querySelector('.send-action');
         const elSendLabel = document.getElementById('sendLabel');
         const elStatusBadge = document.getElementById('statusBadge');
         const elStatusText = document.getElementById('statusText');
@@ -1804,18 +1786,6 @@
 
         function isMobileInputLayout() {
             return mobileLayoutQuery.matches;
-        }
-
-        function pinSendAction() {
-            if (!isMobileInputLayout() || !elSendAction) return;
-            elSendAction.parentElement.style.setProperty('--send-slot-height', elSendAction.offsetHeight + 'px');
-            elSendAction.classList.add('is-pinned');
-        }
-
-        function unpinSendAction() {
-            if (!elSendAction) return;
-            elSendAction.classList.remove('is-pinned');
-            elSendAction.parentElement.style.removeProperty('--send-slot-height');
         }
 
         function base64UrlToArrayBuffer(base64Url) {
@@ -1995,8 +1965,6 @@
 
         function handleLayoutResize() {
             resizeTextInput(document.activeElement === elInput);
-            if (document.activeElement === elInput) pinSendAction();
-            else unpinSendAction();
         }
 
         async function init() {
@@ -2109,19 +2077,11 @@
             } finally {
                 elBtnSend.disabled = !isSecurelyPaired || getUtf8Length(elInput.value) > maxBytes;
                 elSendLabel.textContent = '发送到电脑';
-                if (document.activeElement !== elInput) unpinSendAction();
             }
         });
 
         elInput.addEventListener('focus', () => {
-            pinSendAction();
             scheduleInputVisibility();
-        });
-        elInput.addEventListener('blur', () => {
-            if (document.activeElement !== elBtnSend) unpinSendAction();
-        });
-        elBtnSend.addEventListener('pointerdown', () => {
-            if (isMobileInputLayout()) pinSendAction();
         });
         window.addEventListener('resize', handleLayoutResize);
         if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleInputVisibility);
