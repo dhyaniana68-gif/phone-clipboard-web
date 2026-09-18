@@ -1815,6 +1815,41 @@
                 width: auto;
             }
         }
+
+        /* Android live-typing paint stabilization.
+           The editor and byte counter were both backdrop-filter layers. Updating textarea/counter
+           text forced some Android WebViews to re-rasterize the whole glass surface on every key,
+           which looks like the editor is flashing or changing size even when geometry is unchanged. */
+        @media (max-width: 700px) {
+            .input-group {
+                isolation: isolate;
+            }
+
+            .composer,
+            .char-counter {
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+
+            .composer {
+                contain: paint;
+            }
+
+            .composer::before {
+                mix-blend-mode: normal;
+            }
+
+            textarea {
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+        }
 </style>
 </head>
 <body>
