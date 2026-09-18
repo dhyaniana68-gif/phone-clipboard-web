@@ -1698,6 +1698,91 @@
                 margin-top: 14px;
             }
         }
+
+        /* Mobile viewport lock: fixed single-screen by default; expand only for long text. */
+        @media (max-width: 700px) {
+            html,
+            body {
+                height: 100%;
+                min-height: 0;
+                overflow: hidden;
+                overscroll-behavior-y: none;
+            }
+
+            body {
+                height: 100svh;
+                min-height: 0;
+            }
+
+            .page {
+                display: flex;
+                flex-direction: column;
+                height: 100svh;
+                min-height: 0;
+                overflow: hidden;
+            }
+
+            .topbar,
+            .hero,
+            .send-action,
+            .clear-action,
+            .send-note,
+            .privacy-card {
+                flex: 0 0 auto;
+            }
+
+            .input-group {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                min-height: 0;
+            }
+
+            .composer {
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 0;
+                overflow: hidden;
+            }
+
+            textarea {
+                flex: 1 1 auto;
+                height: calc(100% - 6px);
+                min-height: 0;
+                max-height: none;
+                overflow-y: hidden;
+            }
+
+            body.input-expanded {
+                height: auto;
+                min-height: 100svh;
+                overflow-y: auto;
+                overscroll-behavior-y: auto;
+            }
+
+            body.input-expanded .page {
+                height: auto;
+                min-height: 100svh;
+                overflow: visible;
+            }
+
+            body.input-expanded .input-group {
+                display: block;
+                flex: 0 0 auto;
+            }
+
+            body.input-expanded .composer {
+                height: auto;
+                overflow: visible;
+            }
+
+            body.input-expanded textarea {
+                height: auto;
+                min-height: var(--mobile-editor-base-height, 215px);
+                max-height: none;
+                overflow-y: hidden;
+            }
+        }
 </style>
 </head>
 <body>
@@ -1929,6 +2014,7 @@
         }
 
         let inputVisibilityFrame = 0;
+        let mobileEditorBaseHeight = 0;
 
         function scheduleInputVisibility() {
             if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
@@ -1952,14 +2038,51 @@
         }
 
         function resizeTextInput(keepVisible = false) {
+            const body = document.body;
+            const root = document.documentElement;
+
             if (!isMobileInputLayout()) {
-                // Desktop keeps its grid-sized editor; never let mobile inline height leak into it.
+                // Desktop keeps its grid-sized editor; never let mobile state leak into it.
+                body.classList.remove('input-expanded');
+                root.style.removeProperty('--mobile-editor-base-height');
+                mobileEditorBaseHeight = 0;
                 elInput.style.removeProperty('height');
                 return;
             }
-            // Reset first so shrinking after clearing text also works.
-            elInput.style.height = 'auto';
-            elInput.style.height = `${elInput.scrollHeight}px`;
+
+            const isExpanded = body.classList.contains('input-expanded');
+
+            if (!isExpanded) {
+                // In the normal state the whole page is exactly one viewport tall.
+                // Measure the editor's allocated flex height before deciding whether text needs more room.
+                elInput.style.removeProperty('height');
+                const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
+                mobileEditorBaseHeight = compactHeight;
+                root.style.setProperty('--mobile-editor-base-height', `${compactHeight}px`);
+
+                if (elInput.scrollHeight > compactHeight + 2) {
+                    body.classList.add('input-expanded');
+                    elInput.style.height = 'auto';
+                    elInput.style.height = `${Math.max(elInput.scrollHeight, compactHeight)}px`;
+                }
+            } else {
+                // Once text becomes long, grow the glass editor with its content and let the page scroll.
+                elInput.style.height = 'auto';
+                const contentHeight = elInput.scrollHeight;
+                const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
+                const baseHeight = mobileEditorBaseHeight || cssBaseHeight || 215;
+
+                // Clearing or shortening the text returns the page to the locked one-screen composition.
+                if (contentHeight <= baseHeight + 2) {
+                    body.classList.remove('input-expanded');
+                    elInput.style.removeProperty('height');
+                    mobileEditorBaseHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
+                    root.style.setProperty('--mobile-editor-base-height', `${mobileEditorBaseHeight}px`);
+                } else {
+                    elInput.style.height = `${contentHeight}px`;
+                }
+            }
+
             if (keepVisible) scheduleInputVisibility();
         }
 
