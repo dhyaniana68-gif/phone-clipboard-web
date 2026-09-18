@@ -2087,6 +2087,7 @@
         let keyboardWasOpen = false;
         let compactRestoreFrame = 0;
         let keyboardCloseTimer = 0;
+        let elInputMeasure = null;
 
         function scheduleInputVisibility() {
             if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
@@ -2132,14 +2133,73 @@
             }
         }
 
+        function getCompactEditorBaseHeight() {
+            const root = document.documentElement;
+            const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
+            return mobileEditorBaseHeight || cssBaseHeight || elInput.getBoundingClientRect().height || 215;
+        }
+
+        function measureInputContentHeight() {
+            if (!isMobileInputLayout()) return elInput.scrollHeight;
+
+            if (!elInputMeasure) {
+                elInputMeasure = document.createElement('textarea');
+                elInputMeasure.setAttribute('aria-hidden', 'true');
+                elInputMeasure.tabIndex = -1;
+                Object.assign(elInputMeasure.style, {
+                    position: 'fixed',
+                    left: '-10000px',
+                    top: '0',
+                    visibility: 'hidden',
+                    pointerEvents: 'none',
+                    resize: 'none',
+                    overflow: 'hidden',
+                    height: '0',
+                    minHeight: '0',
+                    maxHeight: 'none',
+                    margin: '0',
+                    zIndex: '-1'
+                });
+                document.body.appendChild(elInputMeasure);
+            }
+
+            const sourceStyle = getComputedStyle(elInput);
+            const measureStyle = elInputMeasure.style;
+            const rect = elInput.getBoundingClientRect();
+
+            measureStyle.boxSizing = sourceStyle.boxSizing;
+            measureStyle.width = `${rect.width}px`;
+            measureStyle.fontFamily = sourceStyle.fontFamily;
+            measureStyle.fontSize = sourceStyle.fontSize;
+            measureStyle.fontWeight = sourceStyle.fontWeight;
+            measureStyle.fontStyle = sourceStyle.fontStyle;
+            measureStyle.lineHeight = sourceStyle.lineHeight;
+            measureStyle.letterSpacing = sourceStyle.letterSpacing;
+            measureStyle.wordSpacing = sourceStyle.wordSpacing;
+            measureStyle.textIndent = sourceStyle.textIndent;
+            measureStyle.paddingTop = sourceStyle.paddingTop;
+            measureStyle.paddingRight = sourceStyle.paddingRight;
+            measureStyle.paddingBottom = sourceStyle.paddingBottom;
+            measureStyle.paddingLeft = sourceStyle.paddingLeft;
+            measureStyle.borderTopWidth = sourceStyle.borderTopWidth;
+            measureStyle.borderRightWidth = sourceStyle.borderRightWidth;
+            measureStyle.borderBottomWidth = sourceStyle.borderBottomWidth;
+            measureStyle.borderLeftWidth = sourceStyle.borderLeftWidth;
+            measureStyle.borderStyle = 'solid';
+            measureStyle.borderColor = 'transparent';
+
+            elInputMeasure.value = elInput.value || ' ';
+            const borderY = (parseFloat(sourceStyle.borderTopWidth) || 0) + (parseFloat(sourceStyle.borderBottomWidth) || 0);
+            return Math.ceil(elInputMeasure.scrollHeight + borderY);
+        }
+
         function contentFitsCompactEditor() {
             if (!isMobileInputLayout()) return false;
             if (elInput.value.length === 0) return true;
 
-            const root = document.documentElement;
-            const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
-            const baseHeight = mobileEditorBaseHeight || cssBaseHeight || elInput.getBoundingClientRect().height || 215;
-            return elInput.scrollHeight <= baseHeight + 2;
+            const baseHeight = getCompactEditorBaseHeight();
+            const requiredHeight = measureInputContentHeight();
+            return requiredHeight <= baseHeight + 1;
         }
 
         function keyboardLooksOpen() {
@@ -2275,38 +2335,36 @@
             const isExpanded = body.classList.contains('input-expanded');
 
             if (!isExpanded) {
-                // In the normal state the whole page is exactly one viewport tall.
-                // Keep the original full-screen editor height stable while the software keyboard
-                // changes the visual viewport; keyboard resize alone must never enter expanded mode.
-                elInput.style.removeProperty('height');
-                const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
-
-                if (!mobileEditorBaseHeight || document.activeElement !== elInput) {
+                // Capture the compact editor height only from the actual compact layout.
+                // Never use the live textarea's scrollHeight to decide expansion: Android can make
+                // that value track the current flex/client height and jitter around the boundary.
+                if (!mobileEditorBaseHeight && document.activeElement !== elInput) {
+                    const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
                     mobileEditorBaseHeight = compactHeight;
                     root.style.setProperty('--mobile-editor-base-height', `${compactHeight}px`);
                 }
 
-                const baseHeight = mobileEditorBaseHeight || compactHeight;
-                if (allowModeChange && elInput.scrollHeight > baseHeight + 2) {
+                const baseHeight = getCompactEditorBaseHeight();
+                const requiredHeight = measureInputContentHeight();
+
+                if (allowModeChange && requiredHeight > baseHeight + 1) {
                     body.classList.add('input-expanded');
-                    elInput.style.height = 'auto';
-                    elInput.style.height = `${Math.max(elInput.scrollHeight, baseHeight)}px`;
+                    elInput.style.height = `${Math.max(requiredHeight, baseHeight)}px`;
                 }
             } else {
-                // Expanded editor: do not toggle height:auto on each character.
-                // scrollHeight only grows when the content needs another visual row, so the glass
-                // panel changes size only at that point instead of flashing for every keystroke.
-                const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
-                const baseHeight = mobileEditorBaseHeight || cssBaseHeight || 215;
+                const baseHeight = getCompactEditorBaseHeight();
+                const requiredHeight = measureInputContentHeight();
+                const targetHeight = Math.max(requiredHeight, baseHeight);
                 const currentHeight = parseFloat(elInput.style.height) || elInput.getBoundingClientRect().height;
-                const contentHeight = elInput.scrollHeight;
 
-                if (allowModeChange && elInput.value.length === 0) {
+                if (allowModeChange && requiredHeight <= baseHeight + 1) {
                     body.classList.remove('input-expanded');
                     elInput.style.removeProperty('height');
                     restoreCompactViewport();
-                } else if (contentHeight > currentHeight + 1) {
-                    elInput.style.height = `${Math.max(contentHeight, baseHeight)}px`;
+                } else if (Math.abs(targetHeight - currentHeight) > 1) {
+                    // The hidden mirror changes height only when wrapping/newlines add or remove
+                    // a visual row, so the visible glass panel no longer jumps per character.
+                    elInput.style.height = `${targetHeight}px`;
                 }
             }
 
