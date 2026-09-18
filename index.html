@@ -2178,8 +2178,16 @@
         function forceCompactIfContentFits(forceOrigin = false) {
             if (!isMobileInputLayout() || !contentFitsCompactEditor()) return false;
 
-            document.body.classList.remove('input-expanded');
-            elInput.style.removeProperty('height');
+            const body = document.body;
+            const wasExpanded = body.classList.contains('input-expanded');
+
+            // Critical: while already compact, do not rewrite textarea height/class on every keypress.
+            // Rewriting height forces Android WebView to relayout the focused textarea and causes the
+            // visible flash/jump the user sees for every character.
+            if (wasExpanded) {
+                body.classList.remove('input-expanded');
+                elInput.style.removeProperty('height');
+            }
 
             if (forceOrigin && !keyboardLooksOpen()) {
                 restoreCompactViewport(true);
@@ -2222,22 +2230,19 @@
                     elInput.style.height = `${Math.max(elInput.scrollHeight, baseHeight)}px`;
                 }
             } else {
-                // Once text becomes long, grow the glass editor with its content and let the page scroll.
-                elInput.style.height = 'auto';
-                const contentHeight = elInput.scrollHeight;
+                // Expanded editor: do not toggle height:auto on each character.
+                // scrollHeight only grows when the content needs another visual row, so the glass
+                // panel changes size only at that point instead of flashing for every keystroke.
                 const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
                 const baseHeight = mobileEditorBaseHeight || cssBaseHeight || 215;
+                const currentHeight = parseFloat(elInput.style.height) || elInput.getBoundingClientRect().height;
+                const contentHeight = elInput.scrollHeight;
 
-                // Only actual content changes are allowed to switch back to compact mode.
-                // A keyboard-open/keyboard-close resize must not change the page mode.
-                if (allowModeChange && contentHeight <= baseHeight + 2) {
+                if (allowModeChange && elInput.value.length === 0) {
                     body.classList.remove('input-expanded');
                     elInput.style.removeProperty('height');
-                    const restoredHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
-                    mobileEditorBaseHeight = restoredHeight;
-                    root.style.setProperty('--mobile-editor-base-height', `${restoredHeight}px`);
                     restoreCompactViewport();
-                } else {
+                } else if (contentHeight > currentHeight + 1) {
                     elInput.style.height = `${Math.max(contentHeight, baseHeight)}px`;
                 }
             }
@@ -2299,8 +2304,8 @@
                 elBtnSend.disabled = false;
             }
 
-            // Content is the only thing allowed to change compact/expanded mode.
-            // In particular, an empty editor is always restored to the locked one-screen state.
+            // Do not mutate layout while text still fits the existing glass panel.
+            // Only crossing the panel's real content boundary is allowed to change its height.
             if (!forceCompactIfContentFits(elInput.value.length === 0)) {
                 resizeTextInput(true, true);
             }
