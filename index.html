@@ -2086,6 +2086,7 @@
         let lockedPageHeight = 0;
         let keyboardWasOpen = false;
         let compactRestoreFrame = 0;
+        let keyboardCloseTimer = 0;
 
         function scheduleInputVisibility() {
             if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
@@ -2142,10 +2143,17 @@
         }
 
         function keyboardLooksOpen() {
-            if (!isMobileInputLayout() || !lockedPageHeight) return false;
+            if (!isMobileInputLayout()) return false;
+
             const currentHeight = getVisualViewportHeight();
-            const threshold = Math.max(110, lockedPageHeight * 0.16);
-            return currentHeight < lockedPageHeight - threshold;
+            const baseline = mobileViewportBaseHeight || lockedPageHeight || window.innerHeight;
+            if (!baseline) return false;
+
+            // Compare against the visual viewport captured immediately before the IME opened.
+            // A relatively small threshold is enough to detect Android keyboards, without treating
+            // normal browser toolbar movement as a keyboard.
+            const threshold = Math.max(72, baseline * 0.09);
+            return currentHeight < baseline - threshold;
         }
 
         function snapCompactPageToOrigin() {
@@ -2198,14 +2206,34 @@
         function trackKeyboardViewport() {
             if (!isMobileInputLayout()) return;
 
-            if (keyboardLooksOpen()) {
+            clearTimeout(keyboardCloseTimer);
+
+            const inputIsFocused = document.activeElement === elInput;
+
+            if (inputIsFocused && keyboardLooksOpen()) {
                 keyboardWasOpen = true;
                 return;
             }
 
-            // The viewport has returned to full height. If text does not require expansion,
-            // treat this as a keyboard-close event even when focus is still on the textarea.
-            if (keyboardWasOpen || contentFitsCompactEditor()) {
+            // Critical: while the textarea is focused, an Android WebView may emit viewport/scroll
+            // events for caret positioning on virtually every keystroke. Never "restore" the page
+            // from those events. Only react after we have positively observed the keyboard open,
+            // followed by the viewport returning to its pre-keyboard height.
+            if (inputIsFocused && !keyboardWasOpen) return;
+
+            if (inputIsFocused && keyboardWasOpen) {
+                const currentHeight = getVisualViewportHeight();
+                const baseline = mobileViewportBaseHeight || lockedPageHeight || currentHeight;
+                if (currentHeight < baseline - 28) return;
+
+                keyboardCloseTimer = setTimeout(() => {
+                    if (document.activeElement !== elInput || keyboardLooksOpen()) return;
+                    if (contentFitsCompactEditor()) restoreCompactViewport(true);
+                }, 90);
+                return;
+            }
+
+            if (!inputIsFocused && contentFitsCompactEditor()) {
                 restoreCompactViewport(true);
             }
         }
@@ -2417,6 +2445,8 @@
             if (isMobileInputLayout() && !document.body.classList.contains('input-expanded')) {
                 const viewport = window.visualViewport;
                 mobileViewportBaseHeight = viewport ? viewport.height : window.innerHeight;
+                keyboardWasOpen = false;
+                clearTimeout(keyboardCloseTimer);
                 setLockedPageHeight(false);
                 forceCompactIfContentFits(false);
             }
@@ -2436,10 +2466,14 @@
         window.addEventListener('scroll', () => {
             if (!isMobileInputLayout()) return;
             if (document.body.classList.contains('input-expanded')) return;
-            if (keyboardLooksOpen()) {
-                keyboardWasOpen = true;
+
+            // While typing, Android is allowed to pan the visual/layout viewport to keep the caret
+            // above the keyboard. Snapping against that pan causes the visible up/down flash.
+            if (document.activeElement === elInput) {
+                if (keyboardLooksOpen()) keyboardWasOpen = true;
                 return;
             }
+
             if (contentFitsCompactEditor() && (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop)) {
                 restoreCompactViewport(true);
             }
@@ -2447,7 +2481,6 @@
 
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', trackKeyboardViewport);
-            window.visualViewport.addEventListener('scroll', trackKeyboardViewport);
         }
         if (typeof mobileLayoutQuery.addEventListener === 'function') {
             mobileLayoutQuery.addEventListener('change', handleLayoutResize);
