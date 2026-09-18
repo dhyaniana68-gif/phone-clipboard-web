@@ -2015,12 +2015,18 @@
 
         let inputVisibilityFrame = 0;
         let mobileEditorBaseHeight = 0;
+        let mobileViewportBaseHeight = 0;
 
         function scheduleInputVisibility() {
             if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
             inputVisibilityFrame = requestAnimationFrame(() => {
                 inputVisibilityFrame = 0;
                 if (!isMobileInputLayout() || document.activeElement !== elInput) return;
+
+                // In the normal one-screen state, never programmatically move the page.
+                // Android may resize/pan the visual viewport for the keyboard; forcing window.scrollBy
+                // here is what can leave the page displaced after the keyboard closes.
+                if (!document.body.classList.contains('input-expanded')) return;
 
                 const viewport = window.visualViewport;
                 const viewportTop = viewport ? viewport.offsetTop : 0;
@@ -2037,7 +2043,29 @@
             });
         }
 
-        function resizeTextInput(keepVisible = false) {
+        function restoreCompactViewport() {
+            if (!isMobileInputLayout() || document.body.classList.contains('input-expanded')) return;
+
+            const viewport = window.visualViewport;
+            const currentViewportHeight = viewport ? viewport.height : window.innerHeight;
+
+            if (!mobileViewportBaseHeight) {
+                mobileViewportBaseHeight = currentViewportHeight;
+                return;
+            }
+
+            // Only snap back when the visual viewport is effectively back to its full height.
+            // This avoids fighting the browser while the software keyboard is still open.
+            if (currentViewportHeight >= mobileViewportBaseHeight - 24) {
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                });
+            }
+        }
+
+        function resizeTextInput(keepVisible = false, allowModeChange = true) {
             const body = document.body;
             const root = document.documentElement;
 
@@ -2046,6 +2074,7 @@
                 body.classList.remove('input-expanded');
                 root.style.removeProperty('--mobile-editor-base-height');
                 mobileEditorBaseHeight = 0;
+                mobileViewportBaseHeight = 0;
                 elInput.style.removeProperty('height');
                 return;
             }
@@ -2054,16 +2083,21 @@
 
             if (!isExpanded) {
                 // In the normal state the whole page is exactly one viewport tall.
-                // Measure the editor's allocated flex height before deciding whether text needs more room.
+                // Keep the original full-screen editor height stable while the software keyboard
+                // changes the visual viewport; keyboard resize alone must never enter expanded mode.
                 elInput.style.removeProperty('height');
                 const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
-                mobileEditorBaseHeight = compactHeight;
-                root.style.setProperty('--mobile-editor-base-height', `${compactHeight}px`);
 
-                if (elInput.scrollHeight > compactHeight + 2) {
+                if (!mobileEditorBaseHeight || document.activeElement !== elInput) {
+                    mobileEditorBaseHeight = compactHeight;
+                    root.style.setProperty('--mobile-editor-base-height', `${compactHeight}px`);
+                }
+
+                const baseHeight = mobileEditorBaseHeight || compactHeight;
+                if (allowModeChange && elInput.scrollHeight > baseHeight + 2) {
                     body.classList.add('input-expanded');
                     elInput.style.height = 'auto';
-                    elInput.style.height = `${Math.max(elInput.scrollHeight, compactHeight)}px`;
+                    elInput.style.height = `${Math.max(elInput.scrollHeight, baseHeight)}px`;
                 }
             } else {
                 // Once text becomes long, grow the glass editor with its content and let the page scroll.
@@ -2072,14 +2106,17 @@
                 const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
                 const baseHeight = mobileEditorBaseHeight || cssBaseHeight || 215;
 
-                // Clearing or shortening the text returns the page to the locked one-screen composition.
-                if (contentHeight <= baseHeight + 2) {
+                // Only actual content changes are allowed to switch back to compact mode.
+                // A keyboard-open/keyboard-close resize must not change the page mode.
+                if (allowModeChange && contentHeight <= baseHeight + 2) {
                     body.classList.remove('input-expanded');
                     elInput.style.removeProperty('height');
-                    mobileEditorBaseHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
-                    root.style.setProperty('--mobile-editor-base-height', `${mobileEditorBaseHeight}px`);
+                    const restoredHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
+                    mobileEditorBaseHeight = restoredHeight;
+                    root.style.setProperty('--mobile-editor-base-height', `${restoredHeight}px`);
+                    restoreCompactViewport();
                 } else {
-                    elInput.style.height = `${contentHeight}px`;
+                    elInput.style.height = `${Math.max(contentHeight, baseHeight)}px`;
                 }
             }
 
@@ -2087,7 +2124,9 @@
         }
 
         function handleLayoutResize() {
-            resizeTextInput(document.activeElement === elInput);
+            // Keyboard resize is layout-only: do not let it switch compact/expanded mode.
+            resizeTextInput(false, false);
+            restoreCompactViewport();
         }
 
         async function init() {
@@ -2204,10 +2243,27 @@
         });
 
         elInput.addEventListener('focus', () => {
+            if (isMobileInputLayout() && !document.body.classList.contains('input-expanded')) {
+                const viewport = window.visualViewport;
+                mobileViewportBaseHeight = viewport ? viewport.height : window.innerHeight;
+            }
             scheduleInputVisibility();
         });
+
+        elInput.addEventListener('blur', () => {
+            // If the editor never needed to grow, closing the keyboard must return to the exact
+            // initial one-screen position instead of preserving any browser viewport offset.
+            setTimeout(restoreCompactViewport, 80);
+            setTimeout(restoreCompactViewport, 220);
+        });
+
         window.addEventListener('resize', handleLayoutResize);
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleInputVisibility);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                handleLayoutResize();
+                restoreCompactViewport();
+            });
+        }
         if (typeof mobileLayoutQuery.addEventListener === 'function') {
             mobileLayoutQuery.addEventListener('change', handleLayoutResize);
         } else if (typeof mobileLayoutQuery.addListener === 'function') {
