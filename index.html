@@ -1895,6 +1895,37 @@
                 padding-left: 7px;
             }
         }
+
+        /* Long-input root scrolling + bottom-anchor fix.
+           Compact mode stays locked to one screen. Expanded mode uses the document root as the
+           only scroll container so the user can always return to scrollTop=0 and reach header/actions. */
+        @media (max-width: 700px) {
+            html.input-expanded {
+                height: auto !important;
+                min-height: 100% !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                overscroll-behavior-y: auto !important;
+            }
+
+            html.input-expanded body.input-expanded {
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100svh !important;
+                overflow: visible !important;
+                overscroll-behavior-y: auto !important;
+            }
+
+            html.input-expanded body.input-expanded .page {
+                position: relative !important;
+                inset: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+            }
+        }
 </style>
 </head>
 <body>
@@ -2136,28 +2167,24 @@
         let elInputMeasure = null;
 
         function scheduleInputVisibility() {
-            if (inputVisibilityFrame) cancelAnimationFrame(inputVisibilityFrame);
-            inputVisibilityFrame = requestAnimationFrame(() => {
-                inputVisibilityFrame = 0;
-                if (!isMobileInputLayout() || document.activeElement !== elInput) return;
+            // Do not programmatically scroll the page while typing.
+            // On Android, the browser already keeps the caret above the IME. Scrolling to the
+            // textarea's *bottom* is incorrect once the field becomes tall and can strand the
+            // user near the bottom of the document.
+        }
 
-                // In the normal one-screen state, never programmatically move the page.
-                // Android may resize/pan the visual viewport for the keyboard; forcing window.scrollBy
-                // here is what can leave the page displaced after the keyboard closes.
+        function setInputExpanded(expanded) {
+            document.body.classList.toggle('input-expanded', expanded);
+            document.documentElement.classList.toggle('input-expanded', expanded);
+        }
+
+        function keepEditorBottomAnchored(previousBottom) {
+            if (!isMobileInputLayout() || document.activeElement !== elInput) return;
+            requestAnimationFrame(() => {
                 if (!document.body.classList.contains('input-expanded')) return;
-
-                const viewport = window.visualViewport;
-                const viewportTop = viewport ? viewport.offsetTop : 0;
-                const viewportBottom = viewportTop + (viewport ? viewport.height : window.innerHeight);
-                const rect = elInput.getBoundingClientRect();
-                const edgePadding = 12;
-                let scrollDelta = 0;
-                if (rect.bottom > viewportBottom - edgePadding) {
-                    scrollDelta = rect.bottom - (viewportBottom - edgePadding);
-                } else if (rect.top < viewportTop + edgePadding) {
-                    scrollDelta = rect.top - (viewportTop + edgePadding);
-                }
-                if (scrollDelta) window.scrollBy({ top: scrollDelta, left: 0, behavior: 'auto' });
+                const nextBottom = elInput.getBoundingClientRect().bottom;
+                const delta = nextBottom - previousBottom;
+                if (Math.abs(delta) > 1) window.scrollBy(0, delta);
             });
         }
 
@@ -2291,7 +2318,7 @@
             }
 
             const body = document.body;
-            body.classList.remove('input-expanded');
+            setInputExpanded(false);
             elInput.style.removeProperty('height');
             document.documentElement.style.setProperty('--locked-page-height', `${lockedPageHeight || window.innerHeight}px`);
 
@@ -2354,7 +2381,7 @@
             // Rewriting height forces Android WebView to relayout the focused textarea and causes the
             // visible flash/jump the user sees for every character.
             if (wasExpanded) {
-                body.classList.remove('input-expanded');
+                setInputExpanded(false);
                 elInput.style.removeProperty('height');
             }
 
@@ -2370,7 +2397,7 @@
 
             if (!isMobileInputLayout()) {
                 // Desktop keeps its grid-sized editor; never let mobile state leak into it.
-                body.classList.remove('input-expanded');
+                setInputExpanded(false);
                 root.style.removeProperty('--mobile-editor-base-height');
                 mobileEditorBaseHeight = 0;
                 mobileViewportBaseHeight = 0;
@@ -2382,8 +2409,6 @@
 
             if (!isExpanded) {
                 // Capture the compact editor height only from the actual compact layout.
-                // Never use the live textarea's scrollHeight to decide expansion: Android can make
-                // that value track the current flex/client height and jitter around the boundary.
                 if (!mobileEditorBaseHeight && document.activeElement !== elInput) {
                     const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
                     mobileEditorBaseHeight = compactHeight;
@@ -2394,8 +2419,10 @@
                 const requiredHeight = measureInputContentHeight();
 
                 if (allowModeChange && requiredHeight > baseHeight + 1) {
-                    body.classList.add('input-expanded');
+                    const previousBottom = elInput.getBoundingClientRect().bottom;
+                    setInputExpanded(true);
                     elInput.style.height = `${Math.max(requiredHeight, baseHeight)}px`;
+                    keepEditorBottomAnchored(previousBottom);
                 }
             } else {
                 const baseHeight = getCompactEditorBaseHeight();
@@ -2404,13 +2431,16 @@
                 const currentHeight = parseFloat(elInput.style.height) || elInput.getBoundingClientRect().height;
 
                 if (allowModeChange && requiredHeight <= baseHeight + 1) {
-                    body.classList.remove('input-expanded');
+                    setInputExpanded(false);
                     elInput.style.removeProperty('height');
                     restoreCompactViewport();
                 } else if (Math.abs(targetHeight - currentHeight) > 1) {
-                    // The hidden mirror changes height only when wrapping/newlines add or remove
-                    // a visual row, so the visible glass panel no longer jumps per character.
+                    // Grow/shrink by real visual rows while keeping the editor's lower edge at the
+                    // same viewport position. The new space is effectively added upward, matching
+                    // the compact screen's bottom anchor.
+                    const previousBottom = elInput.getBoundingClientRect().bottom;
                     elInput.style.height = `${targetHeight}px`;
+                    keepEditorBottomAnchored(previousBottom);
                 }
             }
 
@@ -2593,6 +2623,7 @@
         }
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
+        setInputExpanded(false);
         setLockedPageHeight(true);
         resizeTextInput();
         forceCompactIfContentFits(true);
