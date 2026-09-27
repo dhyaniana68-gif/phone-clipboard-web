@@ -7,7 +7,7 @@
 ```text
 phone-clipboard-web/
 ├── index.html   # 当前手机端静态 H5（HTML / CSS / JavaScript）
-├── fonts/       # 页面引用的本地字体资源
+├── 20260907｜fonts/       # 页面引用的本地字体资源
 ├── .nojekyll    # GitHub Pages 静态部署标记
 └── README.md    # 本说明
 ```
@@ -47,7 +47,7 @@ https://dhyaniana68-gif.github.io/phone-clipboard-web/
 ## 发布与维护约定
 
 1. `index.html` 保持为可直接部署的静态入口。
-2. `fonts/` 与页面引用路径同步维护，不单独移动字体文件。
+2. `20260907｜fonts/` 与页面引用路径同步维护，不单独移动字体文件。
 3. 修改正式 H5 时，应同时核对私有主项目中的 `web/index.html` 与本仓库版本，避免两个副本出现逻辑漂移。
 4. 公开仓库只保存部署所需文件；产品设计、桌面端代码、测试和运行说明继续在私有主项目维护。
 5. 发布前至少检查：页面可加载、配对解析正常、加密路径可用、发送状态与 ACK 展示正常、无敏感数据写入源码。
