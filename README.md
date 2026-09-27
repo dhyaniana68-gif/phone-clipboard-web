@@ -16,8 +16,8 @@ phone-clipboard-web/
 
 ```text
 creative-projects-and-tools-hub/
-└── 01-apps-独立软件工具/
-    └── phone-to-pc-clipboard/
+└── 20260918｜apps-独立软件工具/
+    └── 20260918｜phone-to-pc-clipboard/
 ```
 
 ## 部署地址
