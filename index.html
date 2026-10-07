@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -1692,16 +1692,6 @@
             }
         }
 
-        @media (min-width: 701px) {
-            .send-action .btn-send {
-                max-width: 100%;
-            }
-
-            .clear-action {
-                margin-top: 14px;
-            }
-        }
-
         /* Mobile viewport lock: fixed single-screen by default; expand only for long text. */
         @media (max-width: 700px) {
             html,
@@ -1926,6 +1916,269 @@
                 overflow: visible !important;
             }
         }
+
+        /* ===== Mobile-only fixed app shell =====
+           One layout on every screen: no document scrolling, no long-input expansion.
+           The editor owns text scrolling; the action dock always stays reachable. */
+        :root {
+            --app-max-width: 620px;
+            --dock-gap: 10px;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden !important;
+            overscroll-behavior: none;
+        }
+
+        body {
+            position: relative;
+            min-width: 320px;
+        }
+
+        .page {
+            display: grid !important;
+            grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+            gap: 10px;
+            width: min(100%, var(--app-max-width));
+            height: var(--visible-viewport-height, 100dvh) !important;
+            min-height: 0 !important;
+            margin: 0 auto;
+            padding: max(12px, env(safe-area-inset-top)) clamp(14px, 4.8vw, 22px) max(12px, env(safe-area-inset-bottom));
+            overflow: hidden !important;
+        }
+
+        .topbar,
+        .hero,
+        .input-group,
+        .send-note,
+        .privacy-card,
+        .action-dock {
+            min-width: 0;
+        }
+
+        .hero {
+            padding: clamp(12px, 2.6vh, 22px) 0 0 !important;
+        }
+
+        .hero-meta-row {
+            margin-top: 10px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex !important;
+            min-height: 0 !important;
+            isolation: isolate;
+        }
+
+        .composer {
+            position: relative;
+            flex: 1 1 auto !important;
+            width: 100%;
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            padding: 24px 27px 82px !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            resize: none;
+        }
+
+        .char-counter {
+            z-index: 7;
+            pointer-events: none;
+        }
+
+        .send-note {
+            margin: 0 !important;
+            padding: 0 4px;
+        }
+
+        .privacy-card {
+            margin: 0 !important;
+        }
+
+        .action-dock {
+            position: relative;
+            z-index: 15;
+            display: grid;
+            grid-template-columns: minmax(104px, .34fr) minmax(0, .66fr);
+            gap: var(--dock-gap);
+            align-items: stretch;
+            padding: 7px;
+            border: 1.5px solid rgba(255,255,255,.9);
+            border-radius: 28px;
+            background:
+                linear-gradient(118deg, rgba(255,255,255,.74), rgba(228,248,249,.48) 52%, rgba(193,237,241,.4));
+            box-shadow:
+                0 14px 34px rgba(31, 137, 154, .16),
+                0 0 0 1px rgba(97, 206, 220, .14),
+                inset 2px 2px 3px rgba(255,255,255,.96),
+                inset -8px -10px 18px rgba(73, 190, 205, .10);
+            -webkit-backdrop-filter: blur(18px) saturate(135%);
+            backdrop-filter: blur(18px) saturate(135%);
+        }
+
+        .action-dock::before {
+            position: absolute;
+            inset: 2px 12% auto 10%;
+            height: 42%;
+            content: '';
+            border-radius: 999px;
+            background: linear-gradient(105deg, rgba(255,255,255,.72), rgba(255,255,255,0));
+            filter: blur(9px);
+            pointer-events: none;
+        }
+
+        .action-dock .clear-action,
+        .action-dock .send-action {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: none !important;
+            -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
+        }
+
+        .action-dock .btn-clear,
+        .action-dock .btn-send {
+            width: 100% !important;
+            min-height: 58px;
+            margin: 0 !important;
+            touch-action: manipulation;
+        }
+
+        .action-dock .btn-clear {
+            justify-content: center;
+            gap: 7px;
+            padding: 7px 12px !important;
+            border-radius: 21px;
+            color: #55727a;
+            font-size: 14px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.66), rgba(226,247,248,.32));
+            box-shadow:
+                inset 1px 1px 2px rgba(255,255,255,.95),
+                0 7px 16px rgba(45, 127, 142, .10);
+        }
+
+        .action-dock .btn-send {
+            min-width: 0;
+            padding: 5px 7px 5px 17px !important;
+            border-radius: 21px;
+            font-size: 17px;
+            background:
+                linear-gradient(104deg, rgba(255,255,255,.35), rgba(219,247,249,.22) 48%, rgba(137,226,234,.26)) padding-box,
+                linear-gradient(110deg, rgba(255,255,255,.99), rgba(90,207,222,.82), rgba(255,255,255,.97), rgba(66,184,204,.84)) border-box;
+            box-shadow:
+                0 9px 22px rgba(20,143,164,.18),
+                inset 2px 2px 4px rgba(255,255,255,.95),
+                inset -9px -9px 15px rgba(39,171,187,.11);
+        }
+
+        .action-dock .send-disc {
+            width: 46px;
+            height: 46px;
+            margin: -1px -2px -1px 8px;
+        }
+
+        /* When the keyboard is visible, keep only the information needed to type and send. */
+        body.keyboard-open .page {
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            gap: 8px;
+            padding-top: max(8px, env(safe-area-inset-top));
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+
+        body.keyboard-open .hero,
+        body.keyboard-open .send-note,
+        body.keyboard-open .privacy-card {
+            display: none !important;
+        }
+
+        body.keyboard-open .topbar {
+            min-height: 34px;
+        }
+
+        body.keyboard-open .brand-name {
+            font-size: 17px;
+        }
+
+        body.keyboard-open .status-badge {
+            padding: 6px 9px;
+            font-size: 10px;
+        }
+
+        body.keyboard-open .action-dock {
+            padding: 6px;
+            border-radius: 24px;
+        }
+
+        body.keyboard-open .action-dock .btn-clear,
+        body.keyboard-open .action-dock .btn-send {
+            min-height: 52px;
+        }
+
+        body.keyboard-open .action-dock .send-disc {
+            width: 42px;
+            height: 42px;
+        }
+
+        @media (max-height: 720px) {
+            .hero-copy,
+            .privacy-heading p {
+                display: none;
+            }
+
+            .hero {
+                padding-top: 8px !important;
+            }
+
+            h1 {
+                font-size: clamp(34px, 9.5vw, 46px);
+            }
+
+            .privacy-card {
+                padding-top: 9px;
+                padding-bottom: 9px;
+            }
+        }
+
+        @media (max-width: 370px) {
+            .action-dock {
+                grid-template-columns: 98px minmax(0, 1fr);
+                gap: 8px;
+                padding: 6px;
+            }
+
+            .action-dock .btn-clear {
+                padding-right: 8px !important;
+                padding-left: 8px !important;
+                font-size: 13px;
+            }
+
+            .action-dock .btn-send {
+                padding-left: 12px !important;
+                font-size: 16px;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1951,20 +2204,7 @@
                     <svg class="trust-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.8 19 6v5.2c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6l7-3.2Z" stroke="currentColor" stroke-width="1.6"/><rect x="8.7" y="10.4" width="6.6" height="5.5" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M10.2 10.4V9a1.8 1.8 0 0 1 3.6 0v1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <span>端到端加密</span><span class="trust-separator">·</span><span>电脑端在线</span>
                 </div>
-                <div class="clear-action" aria-label="编辑操作">
-                    <button id="btnClear" class="btn-clear" type="button" disabled>
-                        <span class="clear-disc"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.8 3.8 5.4 5.4a2.2 2.2 0 0 1 0 3.1l-7.7 7.7a2.2 2.2 0 0 1-3.1 0L3.8 14.4a2.2 2.2 0 0 1 0-3.1l7.7-7.5a2.2 2.2 0 0 1 3.3 0Z" stroke="currentColor" stroke-width="1.7"/><path d="m8.2 7.2 8.6 8.6" stroke="currentColor" stroke-width="1.7"/></svg></span>
-                        <span>清空</span>
-                    </button>
-                </div>
             </div>
-        </section>
-
-        <section class="send-action" aria-label="发送操作">
-            <button id="btnSend" class="btn-send" type="button" disabled>
-                <span id="sendLabel" class="send-label">发送到电脑</span>
-                <span class="send-disc"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.3 18-3.4-7.6L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m10.4 13.4 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            </button>
         </section>
 
         <section class="input-group" aria-label="发送文本">
@@ -1983,6 +2223,21 @@
             </div>
             <div class="connection-line"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>电脑端在线 · 刚刚连接</span></div>
         </aside>
+
+        <section class="action-dock" aria-label="编辑与发送操作">
+            <div class="clear-action">
+                <button id="btnClear" class="btn-clear" type="button" disabled>
+                    <span class="clear-disc"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14.8 3.8 5.4 5.4a2.2 2.2 0 0 1 0 3.1l-7.7 7.7a2.2 2.2 0 0 1-3.1 0L3.8 14.4a2.2 2.2 0 0 1 0-3.1l7.7-7.5a2.2 2.2 0 0 1 3.3 0Z" stroke="currentColor" stroke-width="1.7"/><path d="m8.2 7.2 8.6 8.6" stroke="currentColor" stroke-width="1.7"/></svg></span>
+                    <span>清空</span>
+                </button>
+            </div>
+            <div class="send-action">
+                <button id="btnSend" class="btn-send" type="button" disabled>
+                    <span id="sendLabel" class="send-label">发送到电脑</span>
+                    <span class="send-disc"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.3 18-3.4-7.6L3 10.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m10.4 13.4 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                </button>
+            </div>
+        </section>
     </main>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -2011,12 +2266,6 @@
         const elSendFeedback = document.getElementById('sendFeedback');
         const elFeedbackIcon = document.getElementById('feedbackIcon');
         const elFeedbackText = document.getElementById('feedbackText');
-        const mobileLayoutQuery = window.matchMedia('(max-width: 700px)');
-
-        function isMobileInputLayout() {
-            return mobileLayoutQuery.matches;
-        }
-
         function base64UrlToArrayBuffer(base64Url) {
             let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             while (base64.length % 4) base64 += '=';
@@ -2157,305 +2406,24 @@
             elBtnSend.disabled = true;
         }
 
-        let inputVisibilityFrame = 0;
-        let mobileEditorBaseHeight = 0;
-        let mobileViewportBaseHeight = 0;
-        let lockedPageHeight = 0;
-        let keyboardWasOpen = false;
-        let compactRestoreFrame = 0;
-        let keyboardCloseTimer = 0;
-        let elInputMeasure = null;
+        let keyboardBaselineHeight = 0;
 
-        function scheduleInputVisibility() {
-            // Do not programmatically scroll the page while typing.
-            // On Android, the browser already keeps the caret above the IME. Scrolling to the
-            // textarea's *bottom* is incorrect once the field becomes tall and can strand the
-            // user near the bottom of the document.
+        function getVisibleViewportHeight() {
+            return window.visualViewport ? window.visualViewport.height : window.innerHeight;
         }
 
-        function setInputExpanded(expanded) {
-            document.body.classList.toggle('input-expanded', expanded);
-            document.documentElement.classList.toggle('input-expanded', expanded);
-        }
+        function updateKeyboardState() {
+            const visibleHeight = getVisibleViewportHeight();
+            const focused = document.activeElement === elInput;
 
-        function keepEditorBottomAnchored(previousBottom) {
-            if (!isMobileInputLayout() || document.activeElement !== elInput) return;
-            requestAnimationFrame(() => {
-                if (!document.body.classList.contains('input-expanded')) return;
-                const nextBottom = elInput.getBoundingClientRect().bottom;
-                const delta = nextBottom - previousBottom;
-                if (Math.abs(delta) > 1) window.scrollBy(0, delta);
-            });
-        }
-
-        function getVisualViewportHeight() {
-            const viewport = window.visualViewport;
-            return viewport ? viewport.height : window.innerHeight;
-        }
-
-        function setLockedPageHeight(force = false) {
-            if (!isMobileInputLayout()) return;
-
-            const visualHeight = getVisualViewportHeight();
-            const candidate = Math.max(window.innerHeight || 0, visualHeight || 0);
-
-            // Record the full viewport only. Never learn the keyboard-shrunken height as the baseline.
-            if (force || !lockedPageHeight || candidate > lockedPageHeight) {
-                lockedPageHeight = candidate;
-                document.documentElement.style.setProperty('--locked-page-height', `${lockedPageHeight}px`);
-            }
-        }
-
-        function getCompactEditorBaseHeight() {
-            const root = document.documentElement;
-            const cssBaseHeight = parseFloat(getComputedStyle(root).getPropertyValue('--mobile-editor-base-height'));
-            return mobileEditorBaseHeight || cssBaseHeight || elInput.getBoundingClientRect().height || 215;
-        }
-
-        function measureInputContentHeight() {
-            if (!isMobileInputLayout()) return elInput.scrollHeight;
-
-            if (!elInputMeasure) {
-                elInputMeasure = document.createElement('textarea');
-                elInputMeasure.setAttribute('aria-hidden', 'true');
-                elInputMeasure.tabIndex = -1;
-                Object.assign(elInputMeasure.style, {
-                    position: 'fixed',
-                    left: '-10000px',
-                    top: '0',
-                    visibility: 'hidden',
-                    pointerEvents: 'none',
-                    resize: 'none',
-                    overflow: 'hidden',
-                    height: '0',
-                    minHeight: '0',
-                    maxHeight: 'none',
-                    margin: '0',
-                    zIndex: '-1'
-                });
-                document.body.appendChild(elInputMeasure);
+            if (!keyboardBaselineHeight || (!focused && visibleHeight > keyboardBaselineHeight)) {
+                keyboardBaselineHeight = visibleHeight;
             }
 
-            const sourceStyle = getComputedStyle(elInput);
-            const measureStyle = elInputMeasure.style;
-            const rect = elInput.getBoundingClientRect();
-
-            measureStyle.boxSizing = sourceStyle.boxSizing;
-            measureStyle.width = `${rect.width}px`;
-            measureStyle.fontFamily = sourceStyle.fontFamily;
-            measureStyle.fontSize = sourceStyle.fontSize;
-            measureStyle.fontWeight = sourceStyle.fontWeight;
-            measureStyle.fontStyle = sourceStyle.fontStyle;
-            measureStyle.lineHeight = sourceStyle.lineHeight;
-            measureStyle.letterSpacing = sourceStyle.letterSpacing;
-            measureStyle.wordSpacing = sourceStyle.wordSpacing;
-            measureStyle.textIndent = sourceStyle.textIndent;
-            measureStyle.paddingTop = sourceStyle.paddingTop;
-            measureStyle.paddingRight = sourceStyle.paddingRight;
-            measureStyle.paddingBottom = sourceStyle.paddingBottom;
-            measureStyle.paddingLeft = sourceStyle.paddingLeft;
-            measureStyle.borderTopWidth = sourceStyle.borderTopWidth;
-            measureStyle.borderRightWidth = sourceStyle.borderRightWidth;
-            measureStyle.borderBottomWidth = sourceStyle.borderBottomWidth;
-            measureStyle.borderLeftWidth = sourceStyle.borderLeftWidth;
-            measureStyle.borderStyle = 'solid';
-            measureStyle.borderColor = 'transparent';
-
-            elInputMeasure.value = elInput.value || ' ';
-            const borderY = (parseFloat(sourceStyle.borderTopWidth) || 0) + (parseFloat(sourceStyle.borderBottomWidth) || 0);
-            return Math.ceil(elInputMeasure.scrollHeight + borderY);
-        }
-
-        function contentFitsCompactEditor() {
-            if (!isMobileInputLayout()) return false;
-            if (elInput.value.length === 0) return true;
-
-            const baseHeight = getCompactEditorBaseHeight();
-            const requiredHeight = measureInputContentHeight();
-            return requiredHeight <= baseHeight + 1;
-        }
-
-        function keyboardLooksOpen() {
-            if (!isMobileInputLayout()) return false;
-
-            const currentHeight = getVisualViewportHeight();
-            const baseline = mobileViewportBaseHeight || lockedPageHeight || window.innerHeight;
-            if (!baseline) return false;
-
-            // Compare against the visual viewport captured immediately before the IME opened.
-            // A relatively small threshold is enough to detect Android keyboards, without treating
-            // normal browser toolbar movement as a keyboard.
-            const threshold = Math.max(72, baseline * 0.09);
-            return currentHeight < baseline - threshold;
-        }
-
-        function snapCompactPageToOrigin() {
-            if (!isMobileInputLayout() || document.body.classList.contains('input-expanded')) return;
-
-            const snap = () => {
-                if (document.body.classList.contains('input-expanded')) return;
-                window.scrollTo(0, 0);
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-            };
-
-            snap();
-            requestAnimationFrame(snap);
-            setTimeout(snap, 50);
-            setTimeout(snap, 140);
-            setTimeout(snap, 300);
-            setTimeout(snap, 520);
-        }
-
-        function restoreCompactViewport(force = false) {
-            if (!isMobileInputLayout() || !contentFitsCompactEditor()) return;
-
-            // Android's Back button can hide the keyboard without firing textarea.blur().
-            // If the keyboard is still visibly open, keep the browser's temporary pan so the caret stays usable.
-            if (!force && keyboardLooksOpen()) {
-                keyboardWasOpen = true;
-                return;
-            }
-
-            const body = document.body;
-            setInputExpanded(false);
-            elInput.style.removeProperty('height');
-            document.documentElement.style.setProperty('--locked-page-height', `${lockedPageHeight || window.innerHeight}px`);
-
-            // When the IME has just closed, release the browser's focused-element scroll anchor.
-            // This is the missing step in Android in-app browsers: keyboard close does not necessarily blur.
-            if (keyboardWasOpen && document.activeElement === elInput) {
-                elInput.blur();
-            }
-            keyboardWasOpen = false;
-
-            if (compactRestoreFrame) cancelAnimationFrame(compactRestoreFrame);
-            compactRestoreFrame = requestAnimationFrame(() => {
-                compactRestoreFrame = 0;
-                snapCompactPageToOrigin();
-            });
-        }
-
-        function trackKeyboardViewport() {
-            if (!isMobileInputLayout()) return;
-
-            clearTimeout(keyboardCloseTimer);
-
-            const inputIsFocused = document.activeElement === elInput;
-
-            if (inputIsFocused && keyboardLooksOpen()) {
-                keyboardWasOpen = true;
-                return;
-            }
-
-            // Critical: while the textarea is focused, an Android WebView may emit viewport/scroll
-            // events for caret positioning on virtually every keystroke. Never "restore" the page
-            // from those events. Only react after we have positively observed the keyboard open,
-            // followed by the viewport returning to its pre-keyboard height.
-            if (inputIsFocused && !keyboardWasOpen) return;
-
-            if (inputIsFocused && keyboardWasOpen) {
-                const currentHeight = getVisualViewportHeight();
-                const baseline = mobileViewportBaseHeight || lockedPageHeight || currentHeight;
-                if (currentHeight < baseline - 28) return;
-
-                keyboardCloseTimer = setTimeout(() => {
-                    if (document.activeElement !== elInput || keyboardLooksOpen()) return;
-                    if (contentFitsCompactEditor()) restoreCompactViewport(true);
-                }, 90);
-                return;
-            }
-
-            if (!inputIsFocused && contentFitsCompactEditor()) {
-                restoreCompactViewport(true);
-            }
-        }
-
-        function forceCompactIfContentFits(forceOrigin = false) {
-            if (!isMobileInputLayout() || !contentFitsCompactEditor()) return false;
-
-            const body = document.body;
-            const wasExpanded = body.classList.contains('input-expanded');
-
-            // Critical: while already compact, do not rewrite textarea height/class on every keypress.
-            // Rewriting height forces Android WebView to relayout the focused textarea and causes the
-            // visible flash/jump the user sees for every character.
-            if (wasExpanded) {
-                setInputExpanded(false);
-                elInput.style.removeProperty('height');
-            }
-
-            if (forceOrigin && !keyboardLooksOpen()) {
-                restoreCompactViewport(true);
-            }
-            return true;
-        }
-
-        function resizeTextInput(keepVisible = false, allowModeChange = true) {
-            const body = document.body;
-            const root = document.documentElement;
-
-            if (!isMobileInputLayout()) {
-                // Desktop keeps its grid-sized editor; never let mobile state leak into it.
-                setInputExpanded(false);
-                root.style.removeProperty('--mobile-editor-base-height');
-                mobileEditorBaseHeight = 0;
-                mobileViewportBaseHeight = 0;
-                elInput.style.removeProperty('height');
-                return;
-            }
-
-            const isExpanded = body.classList.contains('input-expanded');
-
-            if (!isExpanded) {
-                // Capture the compact editor height only from the actual compact layout.
-                if (!mobileEditorBaseHeight && document.activeElement !== elInput) {
-                    const compactHeight = Math.max(1, Math.round(elInput.getBoundingClientRect().height));
-                    mobileEditorBaseHeight = compactHeight;
-                    root.style.setProperty('--mobile-editor-base-height', `${compactHeight}px`);
-                }
-
-                const baseHeight = getCompactEditorBaseHeight();
-                const requiredHeight = measureInputContentHeight();
-
-                if (allowModeChange && requiredHeight > baseHeight + 1) {
-                    const previousBottom = elInput.getBoundingClientRect().bottom;
-                    setInputExpanded(true);
-                    elInput.style.height = `${Math.max(requiredHeight, baseHeight)}px`;
-                    keepEditorBottomAnchored(previousBottom);
-                }
-            } else {
-                const baseHeight = getCompactEditorBaseHeight();
-                const requiredHeight = measureInputContentHeight();
-                const targetHeight = Math.max(requiredHeight, baseHeight);
-                const currentHeight = parseFloat(elInput.style.height) || elInput.getBoundingClientRect().height;
-
-                if (allowModeChange && requiredHeight <= baseHeight + 1) {
-                    setInputExpanded(false);
-                    elInput.style.removeProperty('height');
-                    restoreCompactViewport();
-                } else if (Math.abs(targetHeight - currentHeight) > 1) {
-                    // Grow/shrink by real visual rows while keeping the editor's lower edge at the
-                    // same viewport position. The new space is effectively added upward, matching
-                    // the compact screen's bottom anchor.
-                    const previousBottom = elInput.getBoundingClientRect().bottom;
-                    elInput.style.height = `${targetHeight}px`;
-                    keepEditorBottomAnchored(previousBottom);
-                }
-            }
-
-            if (keepVisible) scheduleInputVisibility();
-        }
-
-        function handleLayoutResize() {
-            if (!isMobileInputLayout()) {
-                resizeTextInput(false, false);
-                return;
-            }
-
-            // Keyboard geometry is handled independently from content growth.
-            // Never let an IME resize itself decide whether the document becomes scrollable.
-            trackKeyboardViewport();
+            const threshold = Math.max(80, keyboardBaselineHeight * 0.12);
+            const keyboardOpen = focused && visibleHeight < keyboardBaselineHeight - threshold;
+            document.body.classList.toggle('keyboard-open', keyboardOpen);
+            document.documentElement.style.setProperty('--visible-viewport-height', `${Math.round(visibleHeight)}px`);
         }
 
         async function init() {
@@ -2501,11 +2469,7 @@
                 elBtnSend.disabled = false;
             }
 
-            // Do not mutate layout while text still fits the existing glass panel.
-            // Only crossing the panel's real content boundary is allowed to change its height.
-            if (!forceCompactIfContentFits(elInput.value.length === 0)) {
-                resizeTextInput(true, true);
-            }
+            // The app shell stays fixed-height. Long text scrolls inside the editor.
         });
 
         elBtnClear.addEventListener('click', () => {
@@ -2513,8 +2477,8 @@
             elCharCount.textContent = '0';
             elCharCount.style.color = 'var(--muted)';
             elBtnSend.disabled = !isSecurelyPaired;
-            forceCompactIfContentFits(true);
-            elInput.focus();
+            elInput.scrollTop = 0;
+            elInput.focus({ preventScroll: true });
         });
 
         elBtnSend.addEventListener('click', async () => {
@@ -2576,71 +2540,35 @@
         });
 
         elInput.addEventListener('focus', () => {
-            if (isMobileInputLayout() && !document.body.classList.contains('input-expanded')) {
-                const viewport = window.visualViewport;
-                mobileViewportBaseHeight = viewport ? viewport.height : window.innerHeight;
-                keyboardWasOpen = false;
-                clearTimeout(keyboardCloseTimer);
-                setLockedPageHeight(false);
-                forceCompactIfContentFits(false);
-            }
-            scheduleInputVisibility();
+            keyboardBaselineHeight = Math.max(keyboardBaselineHeight, getVisibleViewportHeight());
+            updateKeyboardState();
+            requestAnimationFrame(updateKeyboardState);
         });
 
         elInput.addEventListener('blur', () => {
-            if (!keyboardLooksOpen() && contentFitsCompactEditor()) {
-                restoreCompactViewport(true);
-            }
+            document.body.classList.remove('keyboard-open');
+            requestAnimationFrame(updateKeyboardState);
         });
 
-        window.addEventListener('resize', handleLayoutResize);
-
-        // Guard the compact state even when an Android WebView pans the layout viewport
-        // without firing blur. A short/empty editor is never allowed to retain document scroll.
-        window.addEventListener('scroll', () => {
-            if (!isMobileInputLayout()) return;
-            if (document.body.classList.contains('input-expanded')) return;
-
-            // While typing, Android is allowed to pan the visual/layout viewport to keep the caret
-            // above the keyboard. Snapping against that pan causes the visible up/down flash.
-            if (document.activeElement === elInput) {
-                if (keyboardLooksOpen()) keyboardWasOpen = true;
-                return;
-            }
-
-            if (contentFitsCompactEditor() && (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop)) {
-                restoreCompactViewport(true);
-            }
-        }, { passive: true });
-
+        window.addEventListener('resize', updateKeyboardState, { passive: true });
         if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', trackKeyboardViewport);
-        }
-        if (typeof mobileLayoutQuery.addEventListener === 'function') {
-            mobileLayoutQuery.addEventListener('change', handleLayoutResize);
-        } else if (typeof mobileLayoutQuery.addListener === 'function') {
-            mobileLayoutQuery.addListener(handleLayoutResize);
+            window.visualViewport.addEventListener('resize', updateKeyboardState, { passive: true });
+            window.visualViewport.addEventListener('scroll', updateKeyboardState, { passive: true });
         }
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-        setInputExpanded(false);
-        setLockedPageHeight(true);
-        resizeTextInput();
-        forceCompactIfContentFits(true);
+        keyboardBaselineHeight = getVisibleViewportHeight();
+        updateKeyboardState();
 
         window.addEventListener('DOMContentLoaded', () => {
-            setLockedPageHeight(true);
-            forceCompactIfContentFits(true);
-            requestAnimationFrame(() => {
-                setLockedPageHeight(true);
-                restoreCompactViewport(true);
-            });
+            keyboardBaselineHeight = getVisibleViewportHeight();
+            updateKeyboardState();
             init();
         });
 
         window.addEventListener('pageshow', () => {
-            setLockedPageHeight(true);
-            if (contentFitsCompactEditor()) restoreCompactViewport(true);
+            keyboardBaselineHeight = Math.max(keyboardBaselineHeight, getVisibleViewportHeight());
+            updateKeyboardState();
         });
     </script>
 </body>
