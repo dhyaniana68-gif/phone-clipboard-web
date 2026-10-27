@@ -2346,13 +2346,17 @@
             }
         }
 
+        // 仅当页面运行在固定 VPS 备用源时走同源中转，其余情况保持走 ntfy.sh
+        const backupOrigin = 'https://165.99.43.14:8443';
+        const relayBase = location.origin === backupOrigin ? backupOrigin : 'https://ntfy.sh';
+
         async function waitForAck(messageId, startedAt) {
             ackAbortController = new AbortController();
             const controller = ackAbortController;
             const timer = setTimeout(() => controller.abort(), ackTimeoutMs);
             try {
                 const since = Math.max(0, Math.floor((startedAt - 2000) / 1000));
-                const ackUrl = `https://ntfy.sh/${encodeURIComponent(pairingData.room)}-ack/json?since=${since}`;
+                const ackUrl = `${relayBase}/${encodeURIComponent(pairingData.room)}-ack/json?since=${since}`;
                 const response = await fetch(ackUrl, { signal: controller.signal });
                 if (!response.ok || !response.body) return false;
                 const reader = response.body.getReader();
@@ -2507,7 +2511,7 @@
                 payload.ciphertext = arrayBufferToBase64Url(encryptedBuffer);
 
                 // 局域网二维码显式提供 server；其他所有公网托管域名都使用 ntfy。
-                const publishUrl = pairingData.server || `https://ntfy.sh/${encodeURIComponent(pairingData.room)}`;
+                const publishUrl = pairingData.server || `${relayBase}/${encodeURIComponent(pairingData.room)}`;
                 if (!isLanMode) ackPromise = waitForAck(messageId, timestamp);
 
                 const response = await fetch(publishUrl, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
